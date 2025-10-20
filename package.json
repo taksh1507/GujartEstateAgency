@@ -1,6 +1,6 @@
 {
   "name": "gujarat-real-estate",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A comprehensive real estate management platform with Firebase and Cloudinary integration",
   "main": "index.js",
   "scripts": {

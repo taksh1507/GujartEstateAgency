@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2025-10-20
+
+### 🚀 New Features Added
+
+#### Enhanced Property Management
+- **Property Statistics**: Individual property performance tracking
+- **Advanced Filters**: Enhanced filtering system for properties
+- **Bulk Operations**: Improved bulk property management
+- **Status Tracking**: Real-time status updates with visual feedback
+
+#### Improved User Experience
+- **Better Navigation**: Enhanced routing and navigation system
+- **Loading States**: Improved loading indicators throughout the app
+- **Error Handling**: Better error messages and recovery options
+- **Mobile Optimization**: Enhanced mobile responsiveness
+
+#### Code Quality Improvements
+- **Component Structure**: Better organized component architecture
+- **Performance**: Optimized rendering and data fetching
+- **Type Safety**: Improved prop validation and error handling
+- **Documentation**: Enhanced code documentation and comments
+
+### 🐛 Bug Fixes
+- Fixed property status update synchronization issues
+- Resolved image upload progress tracking
+- Corrected responsive layout problems on tablets
+- Fixed analytics data calculation edge cases
+
+### 🔧 Technical Improvements
+- Refactored component structure for better maintainability
+- Improved error boundary implementation
+- Enhanced API error handling
+- Optimized bundle size and loading performance
+
+---
+
 ## [2.0.0] - 2025-10-20
 
 ### 🚀 Major Features Added
