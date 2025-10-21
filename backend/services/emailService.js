@@ -9,7 +9,14 @@ class EmailService {
 
     initializeTransporter() {
         try {
-            this.transporter = nodemailer.createTransporter({
+            // Check if email credentials are available
+            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+                console.warn('⚠️ Email credentials not found. Email service will be disabled.');
+                this.transporter = null;
+                return;
+            }
+
+            this.transporter = nodemailer.createTransport({
                 service: 'gmail',
                 host: 'smtp.gmail.com',
                 port: 587,
@@ -25,11 +32,13 @@ class EmailService {
                 greetingTimeout: 30000,   // 30 seconds
                 socketTimeout: 60000      // 60 seconds
             });
+            
             if (process.env.NODE_ENV === 'development') {
                 console.log('📧 Email service initialized with Gmail SMTP');
             }
         } catch (error) {
             console.error('❌ Email service initialization failed:', error.message);
+            this.transporter = null;
         }
     }
 
@@ -46,7 +55,9 @@ class EmailService {
     async sendPasswordResetOTP(email, otp, adminName = 'Admin') {
         try {
             if (!this.transporter) {
-                throw new Error('Email service not initialized');
+                console.warn('⚠️ Email service not available. Showing OTP in console for testing.');
+                console.log(`🔐 Password Reset OTP for ${email}: ${otp}`);
+                return false; // Indicate email wasn't sent but don't throw error
             }
 
             const mailOptions = {
@@ -131,6 +142,12 @@ class EmailService {
 
         } catch (error) {
             console.error(`❌ Failed to send OTP email to ${email}:`, error);
+            
+            // In development, show OTP in console as fallback
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`⚠️ Email failed, OTP for testing: ${otp}`);
+            }
+            
             throw new Error(`Failed to send OTP email: ${error.message}`);
         }
     }
@@ -141,7 +158,9 @@ class EmailService {
     async sendEmailVerificationOTP(email, otp, userName = 'User') {
         try {
             if (!this.transporter) {
-                throw new Error('Email service not initialized');
+                console.warn('⚠️ Email service not available. Showing OTP in console for testing.');
+                console.log(`📧 Email Verification OTP for ${email}: ${otp}`);
+                return false; // Indicate email wasn't sent but don't throw error
             }
 
             const mailOptions = {
@@ -223,6 +242,12 @@ class EmailService {
 
         } catch (error) {
             console.error(`❌ Failed to send verification email to ${email}:`, error);
+            
+            // In development, show OTP in console as fallback
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`⚠️ Email failed, OTP for testing: ${otp}`);
+            }
+            
             throw new Error(`Failed to send verification email: ${error.message}`);
         }
     }
