@@ -1,71 +1,128 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, MapPin, Star, ArrowRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
+import { propertyService } from '../services/propertyService';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 const Home = () => {
-  // Sample data - replace with actual data
-  const featuredProperties = [
-    {
-      id: 1,
-      title: "Luxury 3BHK Apartment in Kandivali West",
-      price: 8500000,
-      location: "Kandivali West, Mumbai",
-      image: "/api/placeholder/400/250",
-      beds: 3,
-      baths: 2,
-      area: 1200,
-      type: "Sale"
-    },
-    {
-      id: 2,
-      title: "Modern 2BHK Flat for Rent",
-      price: 35000,
-      location: "Kandivali East, Mumbai",
-      image: "/api/placeholder/400/250",
-      beds: 2,
-      baths: 1,
-      area: 850,
-      type: "Rent"
-    },
-    {
-      id: 3,
-      title: "Spacious 4BHK Villa with Garden",
-      price: 15000000,
-      location: "Borivali West, Mumbai",
-      image: "/api/placeholder/400/250",
-      beds: 4,
-      baths: 3,
-      area: 2000,
-      type: "Sale"
-    }
-  ];
+  const navigate = useNavigate();
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch featured properties from API
+  useEffect(() => {
+    const fetchFeaturedProperties = async () => {
+      try {
+        setIsLoading(true);
+        console.log('Fetching featured properties from API...');
+        const properties = await propertyService.getFeaturedProperties();
+        console.log('Featured properties received:', properties);
+        
+        if (Array.isArray(properties) && properties.length > 0) {
+          setFeaturedProperties(properties.slice(0, 6)); // Show max 6 featured properties
+          console.log('✅ Featured properties loaded from API');
+        } else {
+          // Fallback to sample data if no properties from API
+          console.log('⚠️ No featured properties from API, using sample data');
+          setFeaturedProperties([
+            {
+              id: 'sample-1',
+              title: "Luxury 3BHK Apartment in Ahmedabad",
+              price: 8500000,
+              location: "Ahmedabad, Gujarat",
+              images: ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=250&fit=crop"],
+              beds: 3,
+              baths: 2,
+              area: 1200,
+              type: "Sale",
+              propertyType: "apartment",
+              status: "active",
+              agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+            },
+            {
+              id: 'sample-2',
+              title: "Modern 2BHK for Rent in Surat",
+              price: 35000,
+              location: "Surat, Gujarat",
+              images: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop"],
+              beds: 2,
+              baths: 1,
+              area: 850,
+              type: "Rent",
+              propertyType: "apartment",
+              status: "active",
+              agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+            },
+            {
+              id: 'sample-3',
+              title: "Spacious 4BHK Villa in Vadodara",
+              price: 15000000,
+              location: "Vadodara, Gujarat",
+              images: ["https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&h=250&fit=crop"],
+              beds: 4,
+              baths: 3,
+              area: 2000,
+              type: "Sale",
+              propertyType: "villa",
+              status: "active",
+              agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch featured properties:', error);
+        // Use sample data as fallback
+        setFeaturedProperties([
+          {
+            id: 'fallback-1',
+            title: "Premium Properties Available",
+            price: 5000000,
+            location: "Gujarat, India",
+            images: ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=250&fit=crop"],
+            beds: 3,
+            baths: 2,
+            area: 1000,
+            type: "Sale",
+            propertyType: "apartment",
+            status: "active",
+            agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeaturedProperties();
+  }, []);
 
   const testimonials = [
     {
       id: 1,
       name: "Rajesh Patel",
       rating: 5,
-      comment: "Gujarat Estate Agency helped me find my dream home. Excellent service and professional approach!",
-      location: "Kandivali West"
+      comment: "Gujarat Estate Agency helped me find my dream home in Satellite area. Excellent service and professional approach!",
+      location: "Satellite, Ahmedabad"
     },
     {
       id: 2,
       name: "Priya Sharma",
       rating: 5,
-      comment: "Very trustworthy and reliable. They guided us through the entire buying process smoothly.",
-      location: "Borivali East"
+      comment: "Very trustworthy and reliable. They guided us through the entire buying process in Surat smoothly.",
+      location: "Vesu, Surat"
     },
     {
       id: 3,
       name: "Amit Kumar",
       rating: 5,
-      comment: "Found the perfect rental property within my budget. Highly recommended!",
-      location: "Kandivali East"
+      comment: "Found the perfect rental villa in Vadodara within my budget. Highly recommended!",
+      location: "Alkapuri, Vadodara"
     }
   ];
 
@@ -83,10 +140,10 @@ const Home = () => {
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Find Your Dream Home in
-              <span className="text-secondary block">Kandivali & Mumbai</span>
+              <span className="text-secondary block">Gujarat's Prime Cities</span>
             </h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Gujarat Estate Agency - Your trusted partner for buying, selling, and renting properties in Mumbai's prime locations.
+              Gujarat Estate Agency - Your trusted partner for buying, selling, and renting properties in Ahmedabad, Surat, Vadodara, and Rajkot.
             </p>
             
             {/* Search Bar */}
@@ -101,33 +158,64 @@ const Home = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <select className="input-field pl-10 text-gray-800">
-                      <option>Kandivali West</option>
-                      <option>Kandivali East</option>
-                      <option>Borivali West</option>
-                      <option>Borivali East</option>
+                    <select 
+                      id="location-select"
+                      className="input-field pl-10 text-gray-800"
+                    >
+                      <option value="">All Locations</option>
+                      <option value="ahmedabad">Ahmedabad</option>
+                      <option value="surat">Surat</option>
+                      <option value="vadodara">Vadodara</option>
+                      <option value="rajkot">Rajkot</option>
                     </select>
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
-                  <select className="input-field text-gray-800">
-                    <option>All Types</option>
-                    <option>Apartment</option>
-                    <option>Villa</option>
-                    <option>Office</option>
+                  <select 
+                    id="type-select"
+                    className="input-field text-gray-800"
+                  >
+                    <option value="">All Types</option>
+                    <option value="apartment">Apartment</option>
+                    <option value="villa">Villa</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="plot">Plot</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Budget</label>
-                  <select className="input-field text-gray-800">
-                    <option>Any Budget</option>
-                    <option>Under 50L</option>
-                    <option>50L - 1Cr</option>
-                    <option>Above 1Cr</option>
+                  <select 
+                    id="budget-select"
+                    className="input-field text-gray-800"
+                  >
+                    <option value="">Any Budget</option>
+                    <option value="0-2500000">Under 25L</option>
+                    <option value="2500000-5000000">25L - 50L</option>
+                    <option value="5000000-10000000">50L - 1Cr</option>
+                    <option value="10000000-999999999">Above 1Cr</option>
                   </select>
                 </div>
-                <button className="btn-secondary flex items-center justify-center">
+                <button 
+                  onClick={() => {
+                    const location = document.getElementById('location-select').value;
+                    const type = document.getElementById('type-select').value;
+                    const budget = document.getElementById('budget-select').value;
+                    
+                    // Navigate to properties page with search parameters
+                    const params = new URLSearchParams();
+                    if (location) params.set('location', location);
+                    if (type) params.set('propertyType', type);
+                    if (budget) {
+                      const [min, max] = budget.split('-');
+                      if (min) params.set('minPrice', min);
+                      if (max) params.set('maxPrice', max);
+                    }
+                    
+                    navigate(`/properties?${params.toString()}`);
+                  }}
+                  className="btn-secondary flex items-center justify-center"
+                >
                   <Search className="h-4 w-4 mr-2" />
                   Search
                 </button>
@@ -154,32 +242,60 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={30}
-            slidesPerView={1}
-            navigation
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 4000 }}
-            breakpoints={{
-              640: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 }
-            }}
-            className="pb-12"
-          >
-            {featuredProperties.map((property) => (
-              <SwiperSlide key={property.id}>
-                <PropertyCard property={property} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          {isLoading ? (
+            <div className="text-center py-16">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading featured properties...</p>
+            </div>
+          ) : featuredProperties.length > 0 ? (
+            <>
+              <Swiper
+                modules={[Navigation, Pagination, Autoplay]}
+                spaceBetween={30}
+                slidesPerView={1}
+                navigation
+                pagination={{ clickable: true }}
+                autoplay={{ delay: 4000 }}
+                breakpoints={{
+                  640: { slidesPerView: 2 },
+                  1024: { slidesPerView: 3 }
+                }}
+                className="pb-12"
+              >
+                {featuredProperties.map((property) => (
+                  <SwiperSlide key={property.id}>
+                    <PropertyCard property={property} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
 
-          <div className="text-center mt-8">
-            <button className="btn-primary inline-flex items-center">
-              View All Properties
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </button>
-          </div>
+              <div className="text-center mt-8">
+                <button 
+                  onClick={() => navigate('/properties')}
+                  className="btn-primary inline-flex items-center"
+                >
+                  View All Properties
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-16">
+              <div className="bg-white rounded-lg p-8 shadow-sm max-w-md mx-auto">
+                <MapPin className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Properties Available</h3>
+                <p className="text-gray-600 mb-4">
+                  We're currently updating our property listings. Please check back soon!
+                </p>
+                <button 
+                  onClick={() => navigate('/contact')}
+                  className="btn-primary"
+                >
+                  Contact Us
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

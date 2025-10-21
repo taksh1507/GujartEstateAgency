@@ -3,15 +3,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Home, Building2, Info, Mail, Phone, User, LogIn, UserPlus, LogOut, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import SignInModal from './SignInModal';
-import SignUpModal from './SignUpModal';
+import AuthModal from './AuthModal';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showSignInModal, setShowSignInModal] = useState(false);
-  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
   const location = useLocation();
 
   const baseNavItems = [
@@ -104,7 +103,10 @@ const Navbar = () => {
               ) : (
                 <>
                   <button
-                    onClick={() => setShowSignInModal(true)}
+                    onClick={() => {
+                      setAuthMode('login');
+                      setShowAuthModal(true);
+                    }}
                     className="flex items-center space-x-1 text-white hover:text-secondary transition-colors duration-200 font-medium"
                   >
                     <LogIn className="h-4 w-4" />
@@ -112,7 +114,10 @@ const Navbar = () => {
                   </button>
                   
                   <button
-                    onClick={() => setShowSignUpModal(true)}
+                    onClick={() => {
+                      setAuthMode('register');
+                      setShowAuthModal(true);
+                    }}
                     className="flex items-center space-x-1 bg-secondary text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition-colors duration-200 font-medium"
                   >
                     <UserPlus className="h-4 w-4" />
@@ -194,7 +199,8 @@ const Navbar = () => {
                 <>
                   <button
                     onClick={() => {
-                      setShowSignInModal(true);
+                      setAuthMode('login');
+                      setShowAuthModal(true);
                       setIsOpen(false);
                     }}
                     className="flex items-center space-x-2 text-white hover:text-secondary hover:bg-blue-700 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 w-full"
@@ -205,7 +211,8 @@ const Navbar = () => {
                   
                   <button
                     onClick={() => {
-                      setShowSignUpModal(true);
+                      setAuthMode('register');
+                      setShowAuthModal(true);
                       setIsOpen(false);
                     }}
                     className="flex items-center space-x-2 bg-secondary text-white px-3 py-2 rounded-md hover:bg-amber-600 transition-colors duration-200 font-medium mt-2 w-full"
@@ -228,23 +235,11 @@ const Navbar = () => {
         </motion.div>
       )}
 
-      {/* Modals */}
-      <SignInModal
-        isOpen={showSignInModal}
-        onClose={() => setShowSignInModal(false)}
-        onSwitchToSignUp={() => {
-          setShowSignInModal(false);
-          setShowSignUpModal(true);
-        }}
-      />
-      
-      <SignUpModal
-        isOpen={showSignUpModal}
-        onClose={() => setShowSignUpModal(false)}
-        onSwitchToSignIn={() => {
-          setShowSignUpModal(false);
-          setShowSignInModal(true);
-        }}
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode={authMode}
       />
     </nav>
   );

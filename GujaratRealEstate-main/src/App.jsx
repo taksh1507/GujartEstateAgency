@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { SavedPropertiesProvider } from './context/SavedPropertiesContext';
 import LoadingScreen from './components/LoadingScreen';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
@@ -10,7 +12,6 @@ import Services from './pages/Services';
 import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
-import './styles/global.css';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,20 +26,46 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router basename="/GujaratRealEstate">
-        <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/profile" element={<Profile />} />
-        </Route>
-          {/* Admin routes without main layout */}
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Routes>
-      </Router>
+      <SavedPropertiesProvider>
+        <Router basename="/GujaratRealEstate">
+          <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="/properties" element={<Properties />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+            {/* Admin routes without main layout */}
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Routes>
+          
+          {/* Toast notifications */}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                duration: 3000,
+                theme: {
+                  primary: '#4aed88',
+                },
+              },
+              error: {
+                duration: 4000,
+                theme: {
+                  primary: '#f56565',
+                },
+              },
+            }}
+          />
+        </Router>
+      </SavedPropertiesProvider>
     </AuthProvider>
   );
 }

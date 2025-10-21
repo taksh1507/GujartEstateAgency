@@ -17,10 +17,40 @@ export const propertyService = {
   // Get all properties for public display
   getAllProperties: async (params = {}) => {
     try {
+      console.log('🏠 Fetching properties from API...');
       const response = await api.get('/properties', { params });
-      return response.data;
+      console.log('📡 API Response:', response.data);
+      
+      // Extract properties array from API response
+      if (response.data.success && response.data.data && response.data.data.properties) {
+        const properties = response.data.data.properties;
+        console.log(`✅ Loaded ${properties.length} properties from Firebase`);
+        
+        // Transform the properties to match expected format
+        const transformedProperties = properties.map(property => ({
+          ...property,
+          // Ensure images is an array
+          images: typeof property.images === 'string' 
+            ? property.images.split(' ').filter(img => img.trim()) 
+            : property.images || [],
+          // Use first image as main image for backward compatibility
+          image: typeof property.images === 'string' 
+            ? property.images.split(' ')[0] 
+            : property.images?.[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=250&fit=crop',
+          // Ensure agent is an object
+          agent: typeof property.agent === 'string' 
+            ? JSON.parse(property.agent) 
+            : property.agent || { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+        }));
+        
+        return transformedProperties;
+      }
+      
+      console.log('⚠️ No properties in API response, using mock data');
+      return getMockProperties();
     } catch (error) {
-      console.error('Failed to fetch properties:', error);
+      console.error('❌ Failed to fetch properties:', error);
+      console.log('🔄 Falling back to mock data');
       // Return mock data if API fails
       return getMockProperties();
     }
@@ -71,7 +101,11 @@ export const propertyService = {
   getFeaturedProperties: async () => {
     try {
       const response = await api.get('/properties/featured');
-      return response.data;
+      // Extract properties array from API response
+      if (response.data.success && response.data.data && response.data.data.properties) {
+        return response.data.data.properties;
+      }
+      return response.data.data || response.data; // Fallback for other formats
     } catch (error) {
       console.error('Failed to fetch featured properties:', error);
       return getMockProperties().slice(0, 6);

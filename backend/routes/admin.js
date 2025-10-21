@@ -18,11 +18,10 @@ const loginSchema = Joi.object({
 // Mock admin user (same as in auth.js)
 const mockAdmin = {
   id: 1,
-  email: 'admin@gujaratestate.com',
+  email: 'takshgandhi4@gmail.com',
   password: '$2a$10$UTQWwQ7HaF9/9.d99mE6Wu2Sp7nw4yH9xy/ZM.37Qzck/mRSX7mzy', // password: 'admin123'
-  name: 'Admin User',
-  role: 'admin',
-  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'
+  name: 'Taksh Gandhi',
+  role: 'admin'
 };
 
 /**
@@ -79,8 +78,7 @@ router.post('/login',
             id: mockAdmin.id,
             name: mockAdmin.name,
             email: mockAdmin.email,
-            role: mockAdmin.role,
-            avatar: mockAdmin.avatar
+            role: mockAdmin.role
           },
           token
         },
@@ -122,11 +120,75 @@ router.get('/profile', authenticateAdmin, (req, res) => {
       id: mockAdmin.id,
       name: mockAdmin.name,
       email: mockAdmin.email,
-      role: mockAdmin.role,
-      avatar: mockAdmin.avatar
+      role: mockAdmin.role
     }
   });
 });
+
+/**
+ * @route PUT /api/admin/profile
+ * @desc Update admin profile
+ * @access Private
+ */
+router.put('/profile',
+  authenticateAdmin,
+  validateRequest(Joi.object({
+    name: Joi.string().min(2).max(50).required(),
+    email: Joi.string().email().required(),
+    currentPassword: Joi.string().optional(),
+    newPassword: Joi.string().min(8).optional(),
+    confirmPassword: Joi.string().valid(Joi.ref('newPassword')).optional()
+  })),
+  async (req, res) => {
+    try {
+      const { name, email, currentPassword, newPassword } = req.body;
+
+      console.log(`🔄 Admin profile update request: ${email}`);
+
+      // If changing password, verify current password
+      if (newPassword && currentPassword) {
+        const isValidPassword = await bcrypt.compare(currentPassword, mockAdmin.password);
+        if (!isValidPassword) {
+          return res.status(400).json({
+            success: false,
+            error: 'INVALID_CURRENT_PASSWORD',
+            message: 'Current password is incorrect'
+          });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        mockAdmin.password = hashedPassword;
+        console.log(`🔐 Admin password updated`);
+      }
+
+      // Update profile data
+      mockAdmin.name = name;
+      mockAdmin.email = email;
+
+      console.log(`✅ Admin profile updated: ${name} (${email})`);
+
+      res.json({
+        success: true,
+        data: {
+          id: mockAdmin.id,
+          name: mockAdmin.name,
+          email: mockAdmin.email,
+          role: mockAdmin.role
+        },
+        message: 'Profile updated successfully'
+      });
+
+    } catch (error) {
+      console.error('❌ Admin profile update error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update profile',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
+);
 
 // Image storage will be configured later
 console.log('📁 Image storage not configured yet');
@@ -385,8 +447,6 @@ router.patch('/properties/:id/status',
       const { id } = req.params;
       const { status } = req.body;
 
-
-
       const updatedProperty = await propertyService.updatePropertyStatus(id, status);
 
       res.json({
@@ -404,10 +464,918 @@ router.patch('/properties/:id/status',
   }
 );
 
+// Password Reset with OTP Verification
 
+const emailService = require('../services/emailService');
+const otpService = require('../services/otpService');
 
+/**
+ * @route POST /api/admin/forgot-password
+ * @desc Request password reset OTP
+ * @access Public
+ */
+router.post('/forgot-password',
+  validateRequest(Joi.object({
+    email: Joi.string().email().required()
+  })),
+  async (req, res) => {
+    try {
+      const { email } = req.body;
 
+      console.log(`🔐 Password reset requested for: ${email}`);
 
+      // Check if admin exists (using mock admin for now)
+      if (email !== mockAdmin.email) {
+        // Don't reveal if email exists or not for security
+        return res.json({
+          success: true,
+          message: 'If the email exists, an OTP has been sent to reset your password.'
+        });
+      }
 
+      // Generate and store OTP
+      const otp = otpService.generateOTP();
+      const otpResult = otpService.storeOTP(email, otp, 'password_reset');
+
+      if (!otpResult.success) {
+        throw new Error('Failed to generate OTP');
+      }
+
+      // Send OTP email (skip if email not configured)
+      try {
+        await emailService.sendPasswordResetOTP(email, otp, mockAdmin.name);
+        console.log(`📧 OTP email sent to ${email}`);
+      } catch (emailError) {
+        console.log(`⚠️ Email not configured, OTP: ${otp} (for testing)`);
+      }
+
+      res.json({
+        success: true,
+        message: 'OTP has been sent to your email address. Please check your inbox.',
+        data: {
+          expiryTime: otpResult.expiryTime,
+          attemptsAllowed: otpResult.attemptsRemaining
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Forgot password error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to process password reset request',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
+);
+
+/**
+ * @route POST /api/admin/verify-otp
+ * @desc Verify OTP for password reset
+ * @access Public
+ */
+router.post('/verify-otp',
+  validateRequest(Joi.object({
+    email: Joi.string().email().required(),
+    otp: Joi.string().length(6).pattern(/^[0-9]+$/).required()
+  })),
+  async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+
+      console.log(`🔍 OTP verification attempt for: ${email}`);
+
+      // Verify OTP
+      const verificationResult = otpService.verifyOTP(email, otp, 'password_reset');
+
+      if (!verificationResult.success) {
+        return res.status(400).json({
+          success: false,
+          error: verificationResult.error,
+          message: verificationResult.message,
+          attemptsRemaining: verificationResult.attemptsRemaining
+        });
+      }
+
+      // Generate a temporary token for password reset (valid for 15 minutes)
+      const resetToken = require('crypto').randomBytes(32).toString('hex');
+      const resetTokenExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+      // Store reset token (in production, use database)
+      global.passwordResetTokens = global.passwordResetTokens || new Map();
+      global.passwordResetTokens.set(resetToken, {
+        email,
+        expiryTime: resetTokenExpiry,
+        used: false
+      });
+
+      // Auto-cleanup token after expiry
+      setTimeout(() => {
+        global.passwordResetTokens?.delete(resetToken);
+      }, 15 * 60 * 1000);
+
+      res.json({
+        success: true,
+        message: 'OTP verified successfully. You can now reset your password.',
+        data: {
+          resetToken,
+          expiryTime: resetTokenExpiry
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ OTP verification error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to verify OTP',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
+);
+
+/**
+ * @route POST /api/admin/reset-password
+ * @desc Reset password using verified token
+ * @access Public
+ */
+router.post('/reset-password',
+  validateRequest(Joi.object({
+    resetToken: Joi.string().required(),
+    newPassword: Joi.string().min(8).required(),
+    confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required()
+  })),
+  async (req, res) => {
+    try {
+      const { resetToken, newPassword } = req.body;
+
+      console.log(`🔄 Password reset attempt with token: ${resetToken.substring(0, 8)}...`);
+
+      // Verify reset token
+      global.passwordResetTokens = global.passwordResetTokens || new Map();
+      const tokenData = global.passwordResetTokens.get(resetToken);
+
+      if (!tokenData) {
+        return res.status(400).json({
+          success: false,
+          error: 'INVALID_TOKEN',
+          message: 'Invalid or expired reset token. Please request a new password reset.'
+        });
+      }
+
+      if (tokenData.used) {
+        return res.status(400).json({
+          success: false,
+          error: 'TOKEN_ALREADY_USED',
+          message: 'This reset token has already been used. Please request a new password reset.'
+        });
+      }
+
+      if (Date.now() > tokenData.expiryTime) {
+        global.passwordResetTokens.delete(resetToken);
+        return res.status(400).json({
+          success: false,
+          error: 'TOKEN_EXPIRED',
+          message: 'Reset token has expired. Please request a new password reset.'
+        });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password (in mock admin for now)
+      if (tokenData.email === mockAdmin.email) {
+        mockAdmin.password = hashedPassword;
+        console.log(`✅ Password updated for ${tokenData.email}`);
+      }
+
+      // Mark token as used
+      tokenData.used = true;
+
+      // Send confirmation email
+      await emailService.sendPasswordChangeConfirmation(tokenData.email, mockAdmin.name);
+
+      // Clean up token
+      setTimeout(() => {
+        global.passwordResetTokens?.delete(resetToken);
+      }, 1000);
+
+      res.json({
+        success: true,
+        message: 'Password has been reset successfully. You can now login with your new password.'
+      });
+
+    } catch (error) {
+      console.error('❌ Password reset error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to reset password',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /api/admin/otp-status/:email
+ * @desc Check OTP status for email
+ * @access Public
+ */
+router.get('/otp-status/:email',
+  async (req, res) => {
+    try {
+      const { email } = req.params;
+      const status = otpService.getOTPStatus(email, 'password_reset');
+
+      res.json({
+        success: true,
+        data: status
+      });
+
+    } catch (error) {
+      console.error('❌ OTP status check error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to check OTP status'
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /api/admin/inquiries
+ * @desc Get all inquiries for admin
+ * @access Private (Admin only)
+ */
+router.get('/inquiries', authenticateAdmin, async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+
+    // Get inquiries from Firestore
+    const { db } = require('../config/firebase');
+    const inquiriesRef = db.collection('inquiries');
+
+    let query = inquiriesRef;
+
+    // Filter by status if provided
+    if (status && status !== 'all') {
+      query = query.where('status', '==', status);
+    }
+
+    const inquiriesSnapshot = await query.get();
+
+    const inquiries = [];
+    inquiriesSnapshot.docs.forEach(doc => {
+      inquiries.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+
+    // Sort by creation date (newest first)
+    inquiries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedInquiries = inquiries.slice(startIndex, endIndex);
+
+    console.log(`📋 Retrieved ${inquiries.length} inquiries for admin`);
+
+    res.json({
+      success: true,
+      data: {
+        inquiries: paginatedInquiries,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(inquiries.length / limit),
+          totalInquiries: inquiries.length,
+          hasNext: endIndex < inquiries.length,
+          hasPrev: startIndex > 0
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get inquiries error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get inquiries',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route PUT /api/admin/inquiries/:inquiryId/respond
+ * @desc Respond to an inquiry
+ * @access Private (Admin only)
+ */
+router.put('/inquiries/:inquiryId/respond', authenticateAdmin, async (req, res) => {
+  try {
+    const { inquiryId } = req.params;
+    const { response, status = 'responded' } = req.body;
+
+    if (!response || response.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Response message is required'
+      });
+    }
+
+    const { db } = require('../config/firebase');
+    const inquiriesRef = db.collection('inquiries');
+    const inquiryDoc = await inquiriesRef.doc(inquiryId).get();
+
+    if (!inquiryDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'Inquiry not found'
+      });
+    }
+
+    const inquiryData = inquiryDoc.data();
+
+    // Add admin response to conversation
+    const currentMessages = inquiryData.messages || [];
+    const newMessageId = currentMessages.length + 1;
+
+    const adminMessage = {
+      id: newMessageId,
+      sender: 'admin',
+      senderName: 'Admin Team',
+      message: response.trim(),
+      timestamp: new Date().toISOString(),
+      isRead: false
+    };
+
+    const updatedMessages = [...currentMessages, adminMessage];
+
+    // Update inquiry with conversation structure
+    await inquiryDoc.ref.update({
+      messages: updatedMessages,
+      messageCount: updatedMessages.length,
+      lastMessageAt: new Date().toISOString(),
+      lastMessageBy: 'admin',
+      status: status,
+      updatedAt: new Date().toISOString(),
+      // Keep legacy fields for backward compatibility
+      adminResponse: response.trim(),
+      adminResponseAt: new Date().toISOString()
+    });
+
+    console.log(`✅ Admin responded to inquiry ${inquiryId}`);
+
+    // TODO: Send email notification to user about the response
+
+    res.json({
+      success: true,
+      message: 'Response sent successfully',
+      data: {
+        inquiryId,
+        status
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Respond to inquiry error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to respond to inquiry',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route PUT /api/admin/inquiries/:inquiryId/status
+ * @desc Update inquiry status
+ * @access Private (Admin only)
+ */
+router.put('/inquiries/:inquiryId/status', authenticateAdmin, async (req, res) => {
+  try {
+    const { inquiryId } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['pending', 'responded', 'resolved', 'closed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status. Must be one of: ' + validStatuses.join(', ')
+      });
+    }
+
+    const { db } = require('../config/firebase');
+    const inquiriesRef = db.collection('inquiries');
+    const inquiryDoc = await inquiriesRef.doc(inquiryId).get();
+
+    if (!inquiryDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'Inquiry not found'
+      });
+    }
+
+    // Update inquiry status
+    await inquiryDoc.ref.update({
+      status: status,
+      updatedAt: new Date().toISOString()
+    });
+
+    console.log(`📝 Inquiry ${inquiryId} status updated to: ${status}`);
+
+    res.json({
+      success: true,
+      message: 'Status updated successfully',
+      data: {
+        inquiryId,
+        status
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Update inquiry status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update inquiry status',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route GET /api/admin/inquiries/stats
+ * @desc Get inquiry statistics
+ * @access Private (Admin only)
+ */
+router.get('/inquiries/stats', authenticateAdmin, async (req, res) => {
+  try {
+    const { db } = require('../config/firebase');
+    const inquiriesRef = db.collection('inquiries');
+
+    // Get all inquiries
+    const allInquiriesSnapshot = await inquiriesRef.get();
+    const allInquiries = allInquiriesSnapshot.docs.map(doc => doc.data());
+
+    // Calculate statistics
+    const stats = {
+      total: allInquiries.length,
+      pending: allInquiries.filter(i => i.status === 'pending').length,
+      responded: allInquiries.filter(i => i.status === 'responded').length,
+      resolved: allInquiries.filter(i => i.status === 'resolved').length,
+      closed: allInquiries.filter(i => i.status === 'closed').length,
+      thisMonth: 0,
+      thisWeek: 0
+    };
+
+    // Calculate time-based stats
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+
+    allInquiries.forEach(inquiry => {
+      const createdAt = new Date(inquiry.createdAt);
+      if (createdAt >= startOfMonth) {
+        stats.thisMonth++;
+      }
+      if (createdAt >= startOfWeek) {
+        stats.thisWeek++;
+      }
+    });
+
+    console.log(`📊 Inquiry stats: ${stats.total} total, ${stats.pending} pending`);
+
+    res.json({
+      success: true,
+      data: stats
+    });
+
+  } catch (error) {
+    console.error('❌ Get inquiry stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get inquiry statistics',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route GET /api/admin/users
+ * @desc Get all registered users
+ * @access Private (Admin only)
+ */
+router.get('/users', authenticateAdmin, async (req, res) => {
+  try {
+    const { role, status, page = 1, limit = 20, search } = req.query;
+
+    const { db } = require('../config/firebase');
+    const usersRef = db.collection('users');
+
+    let query = usersRef;
+
+    // Filter by role if provided
+    if (role && role !== 'all') {
+      query = query.where('role', '==', role);
+    }
+
+    // Get all users
+    const usersSnapshot = await query.get();
+
+    let users = [];
+    usersSnapshot.docs.forEach(doc => {
+      const userData = doc.data();
+      users.push({
+        id: doc.id,
+        name: userData.name || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        role: userData.role || 'user',
+        status: userData.isEmailVerified ? 'active' : 'inactive',
+        isEmailVerified: userData.isEmailVerified || false,
+        profilePicture: userData.profilePicture || '',
+        address: userData.address || {},
+        preferences: userData.preferences || {},
+        joinedAt: userData.createdAt || null,
+        lastLoginAt: userData.lastLoginAt || null,
+        createdAt: userData.createdAt || null,
+        updatedAt: userData.updatedAt || null
+      });
+    });
+
+    // Apply search filter if provided
+    if (search && search.trim()) {
+      const searchTerm = search.toLowerCase().trim();
+      users = users.filter(user => 
+        (user.name && user.name.toLowerCase().includes(searchTerm)) ||
+        (user.email && user.email.toLowerCase().includes(searchTerm)) ||
+        (user.phone && user.phone.includes(searchTerm))
+      );
+    }
+
+    // Apply status filter if provided
+    if (status && status !== 'all') {
+      users = users.filter(user => user.status === status);
+    }
+
+    // Sort by creation date (newest first)
+    users.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      return dateB - dateA;
+    });
+
+    // Pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedUsers = users.slice(startIndex, endIndex);
+
+    console.log(`👥 Retrieved ${users.length} users for admin`);
+
+    res.json({
+      success: true,
+      data: {
+        users: paginatedUsers,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(users.length / limit),
+          totalUsers: users.length,
+          hasNext: endIndex < users.length,
+          hasPrev: startIndex > 0
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get users error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get users',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route GET /api/admin/users/:userId
+ * @desc Get single user details
+ * @access Private (Admin only)
+ */
+router.get('/users/:userId', authenticateAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const { db } = require('../config/firebase');
+    const userDoc = await db.collection('users').doc(userId).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    const userData = userDoc.data();
+    const user = {
+      id: userDoc.id,
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
+      role: userData.role || 'user',
+      status: userData.isEmailVerified ? 'active' : 'inactive',
+      isEmailVerified: userData.isEmailVerified,
+      profilePicture: userData.profilePicture,
+      address: userData.address,
+      preferences: userData.preferences,
+      joinedAt: userData.createdAt,
+      lastLoginAt: userData.lastLoginAt,
+      createdAt: userData.createdAt,
+      updatedAt: userData.updatedAt
+    };
+
+    // Get user's inquiries count
+    const inquiriesSnapshot = await db.collection('inquiries')
+      .where('userId', '==', userId)
+      .get();
+
+    // Get user's saved properties count
+    const savedPropertiesSnapshot = await db.collection('savedProperties')
+      .where('userId', '==', userId)
+      .get();
+
+    const userStats = {
+      totalInquiries: inquiriesSnapshot.size,
+      totalSavedProperties: savedPropertiesSnapshot.size
+    };
+
+    console.log(`👤 Retrieved user details for: ${user.email}`);
+
+    res.json({
+      success: true,
+      data: {
+        user,
+        stats: userStats
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get user details error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get user details',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route PUT /api/admin/users/:userId/status
+ * @desc Update user status (activate/deactivate)
+ * @access Private (Admin only)
+ */
+router.put('/users/:userId/status', authenticateAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status } = req.body;
+
+    if (!['active', 'inactive'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status. Must be either "active" or "inactive"'
+      });
+    }
+
+    const { db } = require('../config/firebase');
+    const userDoc = await db.collection('users').doc(userId).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Update user status
+    const isEmailVerified = status === 'active';
+    await userDoc.ref.update({
+      isEmailVerified,
+      updatedAt: new Date().toISOString()
+    });
+
+    console.log(`📝 User ${userId} status updated to: ${status}`);
+
+    res.json({
+      success: true,
+      message: `User ${status === 'active' ? 'activated' : 'deactivated'} successfully`,
+      data: {
+        userId,
+        status
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Update user status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update user status',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route GET /api/admin/users/stats
+ * @desc Get user statistics
+ * @access Private (Admin only)
+ */
+router.get('/users/stats', authenticateAdmin, async (req, res) => {
+  try {
+    const { db } = require('../config/firebase');
+    const usersRef = db.collection('users');
+
+    // Get all users
+    const allUsersSnapshot = await usersRef.get();
+    const allUsers = allUsersSnapshot.docs.map(doc => doc.data());
+
+    // Calculate statistics
+    const stats = {
+      total: allUsers.length,
+      active: allUsers.filter(u => u.isEmailVerified).length,
+      inactive: allUsers.filter(u => !u.isEmailVerified).length,
+      thisMonth: 0,
+      thisWeek: 0
+    };
+
+    // Calculate time-based stats
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+
+    allUsers.forEach(user => {
+      const createdAt = new Date(user.createdAt);
+      if (createdAt >= startOfMonth) {
+        stats.thisMonth++;
+      }
+      if (createdAt >= startOfWeek) {
+        stats.thisWeek++;
+      }
+    });
+
+    console.log(`📊 User stats: ${stats.total} total, ${stats.active} active`);
+
+    res.json({
+      success: true,
+      data: stats
+    });
+
+  } catch (error) {
+    console.error('❌ Get user stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get user statistics',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Site Settings Management
+let siteSettings = {
+  siteName: 'Gujarat Estate Agency',
+  siteDescription: 'Premium Real Estate Services in Gujarat',
+  contactEmail: 'info@gujaratestate.com',
+  contactPhone: '+91 98765 43210',
+  address: 'Ahmedabad, Gujarat, India',
+  socialMedia: {
+    facebook: '',
+    twitter: '',
+    instagram: '',
+    linkedin: ''
+  },
+  businessHours: {
+    monday: '9:00 AM - 6:00 PM',
+    tuesday: '9:00 AM - 6:00 PM',
+    wednesday: '9:00 AM - 6:00 PM',
+    thursday: '9:00 AM - 6:00 PM',
+    friday: '9:00 AM - 6:00 PM',
+    saturday: '10:00 AM - 4:00 PM',
+    sunday: 'Closed'
+  },
+  notifications: {
+    newInquiries: true,
+    newUsers: true,
+    propertyStatusChanges: false,
+    emailNotifications: true,
+    smsNotifications: false
+  }
+};
+
+/**
+ * @route GET /api/admin/settings
+ * @desc Get site settings
+ * @access Private (Admin only)
+ */
+router.get('/settings', authenticateAdmin, (req, res) => {
+  res.json({
+    success: true,
+    data: siteSettings
+  });
+});
+
+/**
+ * @route PUT /api/admin/settings
+ * @desc Update site settings
+ * @access Private (Admin only)
+ */
+router.put('/settings',
+  authenticateAdmin,
+  validateRequest(Joi.object({
+    siteName: Joi.string().min(2).max(100).required(),
+    siteDescription: Joi.string().max(500).required(),
+    contactEmail: Joi.string().email().required(),
+    contactPhone: Joi.string().required(),
+    address: Joi.string().required(),
+    socialMedia: Joi.object({
+      facebook: Joi.string().uri().allow('').optional(),
+      twitter: Joi.string().uri().allow('').optional(),
+      instagram: Joi.string().uri().allow('').optional(),
+      linkedin: Joi.string().uri().allow('').optional()
+    }).optional(),
+    businessHours: Joi.object({
+      monday: Joi.string().optional(),
+      tuesday: Joi.string().optional(),
+      wednesday: Joi.string().optional(),
+      thursday: Joi.string().optional(),
+      friday: Joi.string().optional(),
+      saturday: Joi.string().optional(),
+      sunday: Joi.string().optional()
+    }).optional(),
+    notifications: Joi.object({
+      newInquiries: Joi.boolean().optional(),
+      newUsers: Joi.boolean().optional(),
+      propertyStatusChanges: Joi.boolean().optional(),
+      emailNotifications: Joi.boolean().optional(),
+      smsNotifications: Joi.boolean().optional()
+    }).optional()
+  })),
+  async (req, res) => {
+    try {
+      const updatedSettings = { ...siteSettings, ...req.body };
+      siteSettings = updatedSettings;
+
+      console.log(`⚙️ Site settings updated by admin`);
+
+      res.json({
+        success: true,
+        data: siteSettings,
+        message: 'Site settings updated successfully'
+      });
+
+    } catch (error) {
+      console.error('❌ Site settings update error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update site settings',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
+);
+
+/**
+ * @route PUT /api/admin/settings/notifications
+ * @desc Update notification preferences
+ * @access Private (Admin only)
+ */
+router.put('/settings/notifications',
+  authenticateAdmin,
+  validateRequest(Joi.object({
+    newInquiries: Joi.boolean().required(),
+    newUsers: Joi.boolean().required(),
+    propertyStatusChanges: Joi.boolean().required(),
+    emailNotifications: Joi.boolean().required(),
+    smsNotifications: Joi.boolean().required()
+  })),
+  async (req, res) => {
+    try {
+      siteSettings.notifications = { ...siteSettings.notifications, ...req.body };
+
+      console.log(`🔔 Notification settings updated by admin`);
+
+      res.json({
+        success: true,
+        data: siteSettings.notifications,
+        message: 'Notification preferences updated successfully'
+      });
+
+    } catch (error) {
+      console.error('❌ Notification settings update error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update notification settings',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
+);
 
 module.exports = router;

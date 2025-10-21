@@ -1,404 +1,480 @@
-# Deployment Guide
+# Gujarat Real Estate - Complete Deployment Guide
 
-## Gujarat Real Estate Platform v2.1.0
+This guide covers deploying the Gujarat Real Estate platform with three separate deployments:
+1. **Backend API** - Railway/Heroku
+2. **Admin Dashboard** - Vercel/Netlify  
+3. **Frontend Website** - Vercel/Netlify
 
-This guide provides step-by-step instructions for deploying the Gujarat Real Estate platform to production.
+## 🏗️ Architecture Overview
 
-## 🚀 Quick Deployment
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │  Admin Dashboard│    │    Backend      │
+│  (Main Site)    │    │   (Admin Panel) │    │   (API Server)  │
+│                 │    │                 │    │                 │
+│ yoursite.com    │    │ admin.site.com  │    │ api.site.com    │
+│                 │    │                 │    │                 │
+│ Vercel/Netlify  │    │ Vercel/Netlify  │    │ Railway/Heroku  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │    Firebase     │
+                    │   (Database)    │
+                    │                 │
+                    │   Cloudinary    │
+                    │   (Images)      │
+                    └─────────────────┘
+```
+
+## 🚀 Quick Deployment Steps
 
 ### Prerequisites
-- Node.js 18+ installed
-- Firebase project created
-- Cloudinary account set up
-- Git repository access
+- Node.js 16+ installed
+- Git repository
+- Firebase project setup
+- Cloudinary account
+- Domain names (optional)
 
-### 1. Environment Setup
+### 1. Backend Deployment (Railway)
 
-#### Backend Environment Variables
-Create `backend/.env`:
+#### Step 1: Prepare Backend
+```bash
+cd backend
+npm install
+```
+
+#### Step 2: Environment Variables
+Create production environment variables on Railway:
+
 ```env
 # Server Configuration
-PORT=8000
 NODE_ENV=production
-
-# JWT Configuration
-JWT_SECRET=your_super_secure_jwt_secret_key_here
+PORT=8000
 
 # Firebase Configuration
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour Firebase Private Key Here\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_PRIVATE_KEY_ID=your-private-key-id
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+FIREBASE_CLIENT_ID=your-client-id
+FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
 
 # Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Email Configuration (Gmail)
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+
+# JWT Configuration
+JWT_SECRET=your-super-secure-jwt-secret-key-here
+JWT_EXPIRES_IN=7d
 
 # CORS Configuration
-ALLOWED_ORIGINS=https://your-frontend-domain.com,https://your-admin-domain.com
+FRONTEND_URL=https://your-frontend-domain.com
+ADMIN_URL=https://your-admin-domain.com
 ```
 
-#### Frontend Environment Variables
-Create `admin-dashboard/.env`:
+#### Step 3: Deploy to Railway
+1. Go to [Railway.app](https://railway.app)
+2. Connect your GitHub repository
+3. Select the `backend` folder as root
+4. Add all environment variables
+5. Deploy automatically
+
+**Railway Configuration:**
+- **Root Directory**: `backend`
+- **Build Command**: `npm install`
+- **Start Command**: `npm start`
+- **Port**: `8000`
+
+### 2. Admin Dashboard Deployment (Vercel)
+
+#### Step 1: Prepare Admin Dashboard
+```bash
+cd admin-dashboard
+npm install
+npm run build
+```
+
+#### Step 2: Environment Variables
+Create `.env.production` in admin-dashboard:
+
 ```env
-# API Configuration
-VITE_API_BASE_URL=https://your-backend-api.com/api
-
-# Cloudinary Configuration
-VITE_CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-VITE_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
-
-# Firebase Configuration (Frontend)
-VITE_FIREBASE_API_KEY=your-firebase-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
+VITE_API_BASE_URL=https://your-backend-domain.railway.app/api
+VITE_APP_NAME=Gujarat Estate Admin
+VITE_APP_VERSION=2.1.0
 ```
 
-### 2. Backend Deployment
+#### Step 3: Deploy to Vercel
+1. Go to [Vercel.com](https://vercel.com)
+2. Import your GitHub repository
+3. Set **Root Directory**: `admin-dashboard`
+4. Add environment variables
+5. Deploy
 
-#### Option A: Railway Deployment
-1. Connect your GitHub repository to Railway
-2. Set environment variables in Railway dashboard
-3. Deploy automatically on push to main branch
-
-#### Option B: Heroku Deployment
-```bash
-# Install Heroku CLI
-npm install -g heroku
-
-# Login to Heroku
-heroku login
-
-# Create Heroku app
-heroku create your-app-name-backend
-
-# Set environment variables
-heroku config:set NODE_ENV=production
-heroku config:set JWT_SECRET=your_jwt_secret
-heroku config:set FIREBASE_PROJECT_ID=your_project_id
-# ... set all other environment variables
-
-# Deploy
-git subtree push --prefix backend heroku main
-```
-
-#### Option C: VPS Deployment
-```bash
-# On your VPS
-git clone https://github.com/taksh1507/GujaratRealEstate.git
-cd GujaratRealEstate/backend
-
-# Install dependencies
-npm install --production
-
-# Install PM2 for process management
-npm install -g pm2
-
-# Start the application
-pm2 start server.js --name "gujarat-estate-backend"
-
-# Set up nginx reverse proxy
-sudo nano /etc/nginx/sites-available/gujarat-estate
-```
-
-Nginx configuration:
-```nginx
-server {
-    listen 80;
-    server_name your-backend-domain.com;
-
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
+**Vercel Configuration:**
+```json
+{
+  "name": "gujarat-estate-admin",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
 ```
 
-### 3. Frontend Deployment
+### 3. Frontend Website Deployment (Vercel)
 
-#### Option A: Vercel Deployment
-1. Connect your GitHub repository to Vercel
-2. Set build command: `cd admin-dashboard && npm run build`
-3. Set output directory: `admin-dashboard/dist`
-4. Set environment variables in Vercel dashboard
-5. Deploy automatically on push
-
-#### Option B: Netlify Deployment
+#### Step 1: Prepare Frontend
 ```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Build the project
-cd admin-dashboard
+cd GujaratRealEstate-main
+npm install
 npm run build
-
-# Deploy to Netlify
-netlify deploy --prod --dir=dist
 ```
 
-#### Option C: Firebase Hosting
-```bash
-# Install Firebase CLI
-npm install -g firebase-tools
+#### Step 2: Environment Variables
+Create `.env.production` in GujaratRealEstate-main:
 
-# Login to Firebase
-firebase login
-
-# Initialize Firebase hosting
-firebase init hosting
-
-# Build and deploy
-cd admin-dashboard
-npm run build
-firebase deploy --only hosting
+```env
+VITE_API_BASE_URL=https://your-backend-domain.railway.app/api
+VITE_APP_NAME=Gujarat Real Estate
+VITE_APP_VERSION=2.1.0
+VITE_CONTACT_EMAIL=info@gujaratestate.com
+VITE_CONTACT_PHONE=+91 98765 43210
 ```
 
-### 4. Database Setup
+#### Step 3: Deploy to Vercel
+1. Create a new Vercel project
+2. Import your GitHub repository
+3. Set **Root Directory**: `GujaratRealEstate-main`
+4. Add environment variables
+5. Deploy
 
-#### Firebase Firestore
-1. Go to Firebase Console
-2. Create a new project or use existing
-3. Enable Firestore Database
-4. Set up security rules:
+## 📁 Deployment Files
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Properties collection - read public, write admin only
-    match /properties/{document} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.role == 'admin';
-    }
-    
-    // Users collection - admin only
-    match /users/{document} {
-      allow read, write: if request.auth != null && request.auth.token.role == 'admin';
-    }
-    
-    // Inquiries collection - admin only
-    match /inquiries/{document} {
-      allow read, write: if request.auth != null && request.auth.token.role == 'admin';
-    }
+### Backend - Railway Configuration
+Create `railway.json` in backend folder:
+
+```json
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm start",
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
   }
 }
 ```
 
-5. Create indexes for better performance:
-```javascript
-// Composite indexes
-properties: [
-  { fields: ['status', 'createdAt'], order: 'desc' },
-  { fields: ['propertyType', 'price'], order: 'asc' },
-  { fields: ['location', 'status'], order: 'desc' }
-]
-```
+### Admin Dashboard - Vercel Configuration
+Create `vercel.json` in admin-dashboard folder:
 
-### 5. Cloudinary Setup
-
-1. Create Cloudinary account
-2. Get your cloud name, API key, and API secret
-3. Create upload presets:
-   - Name: `gujarat_estate_properties`
-   - Mode: `unsigned` (for frontend uploads)
-   - Folder: `gujarat-estate/properties`
-   - Transformations: 
-     - Width: 1200, Height: 800, Crop: limit
-     - Quality: auto
-     - Format: auto
-
-### 6. SSL Certificate Setup
-
-#### Using Let's Encrypt (for VPS)
-```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx
-
-# Get SSL certificate
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
-
-# Auto-renewal
-sudo crontab -e
-# Add: 0 12 * * * /usr/bin/certbot renew --quiet
-```
-
-### 7. Monitoring and Logging
-
-#### Backend Monitoring
-```bash
-# Install monitoring tools
-npm install --save express-rate-limit helmet morgan
-
-# Set up logging
-npm install --save winston
-```
-
-#### Frontend Analytics
-```javascript
-// Add Google Analytics
-// In admin-dashboard/index.html
-<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'GA_MEASUREMENT_ID');
-</script>
-```
-
-### 8. Performance Optimization
-
-#### Backend Optimizations
-```javascript
-// Enable compression
-const compression = require('compression');
-app.use(compression());
-
-// Enable caching
-const cache = require('memory-cache');
-
-// Rate limiting
-const rateLimit = require('express-rate-limit');
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use('/api/', limiter);
-```
-
-#### Frontend Optimizations
-```javascript
-// Lazy loading components
-const PropertyForm = lazy(() => import('./pages/PropertyForm'));
-const Analytics = lazy(() => import('./pages/Analytics'));
-
-// Image optimization
-<img 
-  src={`${imageUrl}?w=400&h=300&c=fill&f=auto&q=auto`}
-  loading="lazy"
-  alt="Property"
-/>
-```
-
-### 9. Backup Strategy
-
-#### Database Backup
-```bash
-# Firebase Firestore export
-gcloud firestore export gs://your-backup-bucket/firestore-backup
-
-# Automated backup script
-#!/bin/bash
-DATE=$(date +%Y%m%d_%H%M%S)
-gcloud firestore export gs://your-backup-bucket/backup_$DATE
-```
-
-#### Code Backup
-- Use Git with multiple remotes
-- Regular pushes to GitHub
-- Automated deployment backups
-
-### 10. Testing in Production
-
-#### Health Check Endpoints
-```javascript
-// Backend health check
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version
-  });
-});
-```
-
-#### Frontend Health Check
-```javascript
-// Service worker for offline functionality
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
+```json
+{
+  "name": "gujarat-estate-admin",
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-### 11. Post-Deployment Checklist
+### Frontend - Vercel Configuration
+Create `vercel.json` in GujaratRealEstate-main folder:
 
-- [ ] All environment variables set correctly
-- [ ] Database connections working
-- [ ] Image uploads functioning
-- [ ] Authentication system working
-- [ ] SSL certificates installed
-- [ ] Monitoring and logging active
-- [ ] Backup systems configured
-- [ ] Performance optimization applied
-- [ ] Security headers configured
-- [ ] CORS settings correct
-- [ ] Rate limiting active
-- [ ] Error tracking setup
-- [ ] Analytics configured
-
-### 12. Troubleshooting
-
-#### Common Issues
-
-**CORS Errors**
-```javascript
-// Backend CORS configuration
-const cors = require('cors');
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
-  credentials: true
-}));
+```json
+{
+  "name": "gujarat-real-estate",
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
+}
 ```
 
-**Firebase Connection Issues**
-```javascript
-// Check Firebase configuration
-console.log('Firebase Project ID:', process.env.FIREBASE_PROJECT_ID);
-console.log('Firebase Client Email:', process.env.FIREBASE_CLIENT_EMAIL);
+## 🔧 Build Scripts
+
+### Update package.json scripts for deployment:
+
+#### Backend package.json:
+```json
+{
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'No build step required'",
+    "test": "echo 'No tests specified'"
+  }
+}
 ```
 
-**Cloudinary Upload Issues**
-```javascript
-// Check Cloudinary configuration
-console.log('Cloudinary Cloud Name:', process.env.CLOUDINARY_CLOUD_NAME);
-console.log('Upload Preset:', process.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+#### Admin Dashboard package.json:
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && vercel --prod"
+  }
+}
 ```
 
-### 13. Maintenance
+#### Frontend package.json:
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && vercel --prod"
+  }
+}
+```
 
-#### Regular Tasks
-- Monitor server resources
-- Check error logs daily
-- Update dependencies monthly
-- Backup database weekly
-- Review security settings quarterly
-- Performance audits monthly
+## 🌐 Domain Configuration
 
-#### Update Process
-1. Test updates in staging environment
-2. Create database backup
-3. Deploy during low-traffic hours
-4. Monitor for issues post-deployment
-5. Rollback if necessary
+### Custom Domains Setup:
+
+1. **Backend**: `api.yoursite.com`
+   - Point to Railway deployment
+   - Add CNAME record in DNS
+
+2. **Admin Dashboard**: `admin.yoursite.com`
+   - Point to Vercel deployment
+   - Add CNAME record in DNS
+
+3. **Frontend**: `yoursite.com`
+   - Point to Vercel deployment
+   - Add A record or CNAME in DNS
+
+### DNS Configuration Example:
+```
+Type    Name    Value
+A       @       76.76.19.19 (Vercel IP)
+CNAME   admin   your-admin-vercel-url.vercel.app
+CNAME   api     your-backend-railway-url.railway.app
+```
+
+## 🔒 Security Configuration
+
+### CORS Setup in Backend:
+Update `backend/server.js`:
+
+```javascript
+const corsOptions = {
+  origin: [
+    'https://yoursite.com',
+    'https://admin.yoursite.com',
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+```
+
+### Environment-specific API URLs:
+Update both frontend projects to use environment-specific API URLs.
+
+## 📊 Monitoring & Analytics
+
+### Health Check Endpoints:
+Backend includes health check at `/api/health`
+
+### Performance Monitoring:
+- Vercel Analytics for frontend performance
+- Railway metrics for backend monitoring
+- Firebase Analytics for user tracking
+
+## 🚨 Troubleshooting
+
+### Common Issues:
+
+1. **CORS Errors**: Update CORS origins in backend
+2. **Build Failures**: Check Node.js version compatibility
+3. **Environment Variables**: Ensure all required vars are set
+4. **API Connection**: Verify backend URL in frontend env vars
+
+### Debug Commands:
+```bash
+# Check build locally
+npm run build
+
+# Test production build
+npm run preview
+
+# Check environment variables
+echo $VITE_API_BASE_URL
+```
+
+## 📝 Deployment Checklist
+
+### Pre-deployment:
+- [ ] Firebase project configured
+- [ ] Cloudinary account setup
+- [ ] Environment variables prepared
+- [ ] Domain names purchased (optional)
+- [ ] SSL certificates ready
+
+### Backend Deployment:
+- [ ] Railway project created
+- [ ] Environment variables added
+- [ ] Health check working
+- [ ] CORS configured
+- [ ] Database connected
+
+### Admin Dashboard:
+- [ ] Vercel project created
+- [ ] Build successful
+- [ ] Environment variables set
+- [ ] API connection working
+- [ ] Authentication working
+
+### Frontend Website:
+- [ ] Vercel project created
+- [ ] Build successful
+- [ ] Environment variables set
+- [ ] API connection working
+- [ ] All pages loading
+
+### Post-deployment:
+- [ ] Custom domains configured
+- [ ] SSL certificates active
+- [ ] Performance testing
+- [ ] Security testing
+- [ ] User acceptance testing
+
+## 🔄 CI/CD Pipeline (Optional)
+
+### GitHub Actions for automatic deployment:
+Create `.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Railway
+        run: |
+          # Railway deployment commands
+          
+  deploy-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Vercel
+        run: |
+          # Vercel deployment commands
+          
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Vercel
+        run: |
+          # Vercel deployment commands
+```
+
+## 📞 Support
+
+For deployment issues:
+- Check logs in respective platforms
+- Verify environment variables
+- Test API endpoints
+- Contact platform support if needed
 
 ---
 
-## Support
-
-For deployment support, contact: support@gujaratestate.com
-
-## Documentation
-
-- [API Documentation](./API_DOCS.md)
-- [User Guide](./USER_GUIDE.md)
-- [Development Setup](./README.md)
+**Next Steps**: Follow the platform-specific deployment guides below for detailed instructions.

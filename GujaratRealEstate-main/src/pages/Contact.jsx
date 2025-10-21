@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
+import { useLocation } from 'react-router-dom';
 import { 
   MapPin, 
   Phone, 
@@ -16,10 +17,23 @@ import {
 
 const Contact = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
+  const location = useLocation();
+  const propertyInfo = location.state;
+
+  // Pre-fill form if coming from property card
+  useEffect(() => {
+    if (propertyInfo) {
+      setValue('subject', 'property-inquiry');
+      setValue('message', `I am interested in the property: ${propertyInfo.propertyTitle} (${propertyInfo.propertyPrice}) located at ${propertyInfo.propertyLocation}. Please provide more details.`);
+    }
+  }, [propertyInfo, setValue]);
 
   const onSubmit = (data) => {
     console.log('Form submitted:', data);
+    if (propertyInfo) {
+      console.log('Property inquiry for:', propertyInfo);
+    }
     // Here you would typically send the data to your backend
     setIsSubmitted(true);
     reset();
@@ -31,9 +45,9 @@ const Contact = () => {
       icon: MapPin,
       title: "Visit Our Office",
       details: [
-        "Shop No. 15, Ground Floor",
-        "Kandivali West, Mumbai - 400067",
-        "Maharashtra, India"
+        "Office No. 301, 3rd Floor",
+        "Shivalik Plaza, CG Road",
+        "Ahmedabad - 380009, Gujarat"
       ],
       action: "Get Directions"
     },
@@ -43,7 +57,7 @@ const Contact = () => {
       details: [
         "Primary: +91 98765 43210",
         "Secondary: +91 98765 43211",
-        "Landline: 022-2845-6789"
+        "Landline: 079-2630-5678"
       ],
       action: "Call Now"
     },
@@ -93,10 +107,10 @@ const Contact = () => {
   ];
 
   const officeTeam = [
-    { name: "Rajesh Patel", role: "Branch Manager", phone: "+91 98765 43210" },
-    { name: "Priya Shah", role: "Sales Director", phone: "+91 98765 43211" },
-    { name: "Amit Kumar", role: "Investment Advisor", phone: "+91 98765 43212" },
-    { name: "Sneha Joshi", role: "Property Manager", phone: "+91 98765 43213" }
+    { name: "Taksh Gandhi", role: "Founder & CEO", phone: "+91 82916 12709" },
+    { name: "Rajesh Patel", role: "Sales Manager", phone: "+91 98765 43210" },
+    { name: "Priya Shah", role: "Property Consultant", phone: "+91 98765 43211" },
+    { name: "Amit Kumar", role: "Investment Advisor", phone: "+91 98765 43212" }
   ];
 
   return (
@@ -181,6 +195,22 @@ const Contact = () => {
               transition={{ duration: 0.8 }}
             >
               <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Send Us a Message</h3>
+              
+              {/* Property Inquiry Info */}
+              {propertyInfo && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6"
+                >
+                  <h4 className="font-semibold text-blue-800 mb-2">Property Inquiry</h4>
+                  <p className="text-blue-700 text-sm">
+                    <strong>{propertyInfo.propertyTitle}</strong><br />
+                    Price: {propertyInfo.propertyPrice}<br />
+                    Location: {propertyInfo.propertyLocation}
+                  </p>
+                </motion.div>
+              )}
               
               {isSubmitted && (
                 <motion.div

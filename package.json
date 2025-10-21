@@ -4,12 +4,17 @@
   "description": "A comprehensive real estate management platform with Firebase and Cloudinary integration",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:admin\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd admin-dashboard && npm run dev",
-    "build": "cd admin-dashboard && npm run build",
+    "dev:admin": "cd admin-dashboard && npm run dev",
+    "dev:frontend": "cd GujaratRealEstate-main && npm run dev",
+    "build": "npm run build:admin && npm run build:frontend",
+    "build:admin": "cd admin-dashboard && npm run build",
+    "build:frontend": "cd GujaratRealEstate-main && npm run build",
     "start": "cd backend && npm start",
-    "install:all": "npm install && cd backend && npm install && cd ../admin-dashboard && npm install"
+    "install:all": "npm install && cd backend && npm install && cd ../admin-dashboard && npm install && cd ../GujaratRealEstate-main && npm install",
+    "deploy": "chmod +x deploy.sh && ./deploy.sh",
+    "test:build": "npm run build && echo 'All builds successful!'"
   },
   "keywords": [
     "real-estate",
@@ -24,12 +29,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/taksh1507/GujaratRealEstate.git"
+    "url": "https://github.com/taksh1507/GujartEstateAgency.git"
   },
   "bugs": {
-    "url": "https://github.com/taksh1507/GujaratRealEstate/issues"
+    "url": "https://github.com/taksh1507/GujartEstateAgency/issues"
   },
-  "homepage": "https://github.com/taksh1507/GujaratRealEstate#readme",
+  "homepage": "https://github.com/taksh1507/GujartEstateAgency#readme",
   "devDependencies": {
     "concurrently": "^8.2.2"
   },

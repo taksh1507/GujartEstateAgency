@@ -112,6 +112,16 @@ const Login = () => {
             </button>
           </div>
 
+          {/* Forgot Password Link */}
+          <div className="text-center">
+            <a
+              href="/forgot-password"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Forgot your password?
+            </a>
+          </div>
+
           {/* Development only - Mock Login */}
           <div className="mt-4">
             <button

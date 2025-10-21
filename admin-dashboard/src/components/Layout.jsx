@@ -142,11 +142,11 @@ const Layout = () => {
               {/* User menu */}
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-3">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src={user?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'}
-                    alt={user?.name}
-                  />
+                  <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
+                    <span className="text-sm font-medium text-white">
+                      {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'A'}
+                    </span>
+                  </div>
                   <div className="hidden sm:block">
                     <p className="text-sm font-medium text-gray-700">{user?.name}</p>
                     <p className="text-xs text-gray-500">{user?.email}</p>

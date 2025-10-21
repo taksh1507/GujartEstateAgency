@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+
+
 ## [2.1.0] - 2025-10-20
 
 ### 🚀 New Features Added

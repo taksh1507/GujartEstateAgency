@@ -423,9 +423,23 @@ const Properties = () => {
             {/* Content Section */}
             <div className={`p-6 ${viewMode === 'list' ? 'flex-1' : ''}`}>
               <div className="flex items-start justify-between mb-2">
-                <h3 className="text-lg font-semibold text-gray-900 truncate">
-                  {property.title}
-                </h3>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    {property.propertyId && (
+                      <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {property.propertyId}
+                      </span>
+                    )}
+                    {property.propertyIndex && (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        #{property.propertyIndex}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 truncate">
+                    {property.title}
+                  </h3>
+                </div>
               </div>
 
               <p className="text-gray-600 text-sm mb-3 line-clamp-2">

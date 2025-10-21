@@ -90,13 +90,21 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
+      // If profileData is already the updated user object, use it directly
+      if (profileData && profileData.id) {
+        const updatedUser = profileData;
+        localStorage.setItem('adminUser', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        return { success: true, user: updatedUser };
+      }
+      
+      // Otherwise, make API call to update profile
       const response = await authAPI.updateProfile(profileData);
       
       if (response.success) {
         const updatedUser = response.data;
         localStorage.setItem('adminUser', JSON.stringify(updatedUser));
         setUser(updatedUser);
-        toast.success('Profile updated successfully');
         return { success: true, user: updatedUser };
       } else {
         throw new Error(response.message || 'Profile update failed');
@@ -104,7 +112,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Profile update failed:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Profile update failed';
-      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
   };
@@ -116,7 +123,6 @@ export const AuthProvider = ({ children }) => {
       name: 'Admin User',
       email: 'admin@gujaratestate.com',
       role: 'admin',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
       permissions: ['properties', 'users', 'analytics', 'settings']
     };
 

@@ -156,7 +156,8 @@ router.get('/featured', async (req, res) => {
     const result = await propertyService.getProperties({
       page: 1,
       limit: 6,
-      status: 'active'
+      status: 'active',
+      sortBy: 'newest'
     });
 
     res.json({
@@ -173,6 +174,76 @@ router.get('/featured', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch featured properties',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route GET /api/properties/by-city/:city
+ * @desc Get properties by city
+ * @access Public
+ */
+router.get('/by-city/:city', async (req, res) => {
+  try {
+    const { city } = req.params;
+    const { limit = 10 } = req.query;
+
+    const properties = await propertyService.getPropertiesByCity(city, {
+      limit: parseInt(limit),
+      status: 'active'
+    });
+
+    res.json({
+      success: true,
+      data: {
+        properties,
+        city,
+        total: properties.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get properties by city error:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch properties by city',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @route GET /api/properties/by-price-range/:range
+ * @desc Get properties by price range
+ * @access Public
+ */
+router.get('/by-price-range/:range', async (req, res) => {
+  try {
+    const { range } = req.params;
+    const { limit = 10 } = req.query;
+
+    const properties = await propertyService.getPropertiesByPriceRange(range, {
+      limit: parseInt(limit),
+      status: 'active'
+    });
+
+    res.json({
+      success: true,
+      data: {
+        properties,
+        priceRange: range,
+        total: properties.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get properties by price range error:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch properties by price range',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }

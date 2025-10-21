@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, MapPin, Home as HomeIcon, Building, Car } from 'lucide-react';
 import PropertyCard from '../components/PropertyCard';
 import { propertyService } from '../services/propertyService';
 
 const Properties = () => {
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     type: 'all', // all, sale, rent
@@ -14,20 +16,53 @@ const Properties = () => {
     beds: 'all', // all, 1, 2, 3, 4+
     location: 'all'
   });
+  const [sortBy, setSortBy] = useState('newest'); // newest, oldest, price-low, price-high
   const [showFilters, setShowFilters] = useState(false);
   const [allProperties, setAllProperties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const urlLocation = searchParams.get('location');
+    const urlPropertyType = searchParams.get('propertyType');
+    const urlMinPrice = searchParams.get('minPrice');
+    const urlMaxPrice = searchParams.get('maxPrice');
+
+    if (urlLocation || urlPropertyType || urlMinPrice || urlMaxPrice) {
+      setFilters(prev => ({
+        ...prev,
+        location: urlLocation || 'all',
+        propertyType: urlPropertyType || 'all',
+        minPrice: urlMinPrice || '',
+        maxPrice: urlMaxPrice || ''
+      }));
+      setShowFilters(true); // Show filters if coming from search
+    }
+  }, [searchParams]);
 
   // Fetch properties from API
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         setIsLoading(true);
+        console.log('Fetching properties from API...');
         const properties = await propertyService.getAllProperties();
-        setAllProperties(properties);
+        console.log('Properties received:', properties);
+        console.log('Properties type:', typeof properties);
+        console.log('Properties length:', Array.isArray(properties) ? properties.length : 'Not an array');
+        
+        // Ensure we have an array of properties
+        if (Array.isArray(properties) && properties.length > 0) {
+          setAllProperties(properties);
+          console.log('✅ Properties loaded from Firebase API:', properties.length);
+        } else {
+          console.log('⚠️ No properties from API, using mock data');
+          setAllProperties(mockProperties);
+        }
       } catch (error) {
         console.error('Failed to fetch properties:', error);
         // Fallback to mock data
+        console.log('Using fallback mock data');
         setAllProperties(mockProperties);
       } finally {
         setIsLoading(false);
@@ -146,9 +181,9 @@ const Properties = () => {
     }
   ];
 
-  // Filter properties based on search and filters
+  // Filter and sort properties based on search, filters, and sort option
   const filteredProperties = useMemo(() => {
-    return allProperties.filter(property => {
+    let filtered = allProperties.filter(property => {
       const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            property.location.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -164,7 +199,26 @@ const Properties = () => {
 
       return matchesSearch && matchesType && matchesPropertyType && matchesBeds && matchesMinPrice && matchesMaxPrice;
     });
-  }, [searchTerm, filters, allProperties]);
+
+    // Apply sorting
+    switch (sortBy) {
+      case 'price-low':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => (a.propertyIndex || 0) - (b.propertyIndex || 0));
+        break;
+      case 'newest':
+      default:
+        filtered.sort((a, b) => (b.propertyIndex || 0) - (a.propertyIndex || 0));
+        break;
+    }
+
+    return filtered;
+  }, [searchTerm, filters, allProperties, sortBy]);
 
   const locations = ['All Locations', 'Kandivali West', 'Kandivali East', 'Borivali West', 'Borivali East', 'Malad West', 'Andheri West'];
 
@@ -199,6 +253,18 @@ const Properties = () => {
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
               />
             </div>
+
+            {/* Sort Dropdown */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+            </select>
 
             {/* Filter Button */}
             <button
@@ -311,18 +377,29 @@ const Properties = () => {
       {/* Results Section */}
       <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Results Count */}
-          <div className="mb-6">
-            <p className="text-gray-600">
-              Showing <span className="font-semibold">{filteredProperties.length}</span> properties
-              {searchTerm && (
-                <span> for "<span className="font-semibold">{searchTerm}</span>"</span>
-              )}
-            </p>
-          </div>
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="text-center py-16">
+              <div className="bg-white rounded-lg p-8 shadow-sm max-w-md mx-auto">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading Properties...</h3>
+                <p className="text-gray-600">Please wait while we fetch the latest properties.</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Results Count */}
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Showing <span className="font-semibold">{filteredProperties.length}</span> properties
+                  {searchTerm && (
+                    <span> for "<span className="font-semibold">{searchTerm}</span>"</span>
+                  )}
+                </p>
+              </div>
 
-          {/* Properties Grid */}
-          {filteredProperties.length > 0 ? (
+              {/* Properties Grid */}
+              {filteredProperties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProperties.map((property, index) => (
                 <motion.div
@@ -361,6 +438,8 @@ const Properties = () => {
                 </button>
               </div>
             </div>
+          )}
+            </>
           )}
         </div>
       </section>

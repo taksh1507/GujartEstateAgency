@@ -59,6 +59,31 @@ export const authAPI = {
   updateProfile: async (data) => {
     const response = await api.put('/admin/profile', data);
     return response.data;
+  },
+
+  // Password Reset with OTP
+  forgotPassword: async (email) => {
+    const response = await api.post('/admin/forgot-password', { email });
+    return response.data;
+  },
+
+  verifyOTP: async (email, otp) => {
+    const response = await api.post('/admin/verify-otp', { email, otp });
+    return response.data;
+  },
+
+  resetPassword: async (resetToken, newPassword, confirmPassword) => {
+    const response = await api.post('/admin/reset-password', {
+      resetToken,
+      newPassword,
+      confirmPassword
+    });
+    return response.data;
+  },
+
+  getOTPStatus: async (email) => {
+    const response = await api.get(`/admin/otp-status/${email}`);
+    return response.data;
   }
 };
 
@@ -98,19 +123,7 @@ export const propertiesAPI = {
     return response.data;
   },
 
-  // Upload image to Google Drive via backend
-  uploadImageToGoogleDrive: async (imageData) => {
-    const response = await api.post('/admin/properties/upload-image', imageData);
-    return response.data;
-  },
 
-  // Delete image from Google Drive via backend
-  deleteImageFromGoogleDrive: async (imageUrl) => {
-    const response = await api.delete('/admin/properties/delete-image', {
-      data: { imageUrl }
-    });
-    return response.data;
-  },
   
   updateStatus: async (id, status) => {
     const response = await api.patch(`/admin/properties/${id}/status`, { status });
@@ -201,15 +214,6 @@ export const settingsAPI = {
   
   update: async (data) => {
     const response = await api.put('/admin/settings', data);
-    return response.data;
-  },
-  
-  uploadLogo: async (formData) => {
-    const response = await api.post('/admin/settings/logo', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
     return response.data;
   }
 };

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -15,148 +16,256 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if user is logged in on app start
+  // Check for existing session on app load
   useEffect(() => {
-    const checkAuthStatus = () => {
-      const token = localStorage.getItem('authToken');
-      const savedUser = localStorage.getItem('user');
-      
-      if (token && savedUser) {
-        try {
-          const userData = JSON.parse(savedUser);
-          setUser(userData);
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+        
+        if (token && userData) {
+          const parsedUser = JSON.parse(userData);
+          
+          // Set user immediately from cache for better UX
+          setUser(parsedUser);
           setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Failed to parse user data:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          setUser(null);
-          setIsAuthenticated(false);
+          console.log('✅ User session restored from cache:', parsedUser.email);
+          
+          // Verify token is still valid in background
+          try {
+            const isValid = await authService.verifyToken(token);
+            if (isValid) {
+              // Token is valid, try to get fresh profile data
+              const profileResponse = await authService.getProfile();
+              if (profileResponse.success) {
+                const freshUserData = profileResponse.data.user;
+                setUser(freshUserData);
+                
+                // Update stored data with fresh data
+                const storage = localStorage.getItem('authToken') ? localStorage : sessionStorage;
+                storage.setItem('userData', JSON.stringify(freshUserData));
+                console.log('✅ Profile data refreshed from server');
+              }
+            } else {
+              // Token expired, clear storage
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('userData');
+              sessionStorage.removeItem('authToken');
+              sessionStorage.removeItem('userData');
+              setUser(null);
+              setIsAuthenticated(false);
+              console.log('⚠️ Token expired, session cleared');
+            }
+          } catch (verifyError) {
+            console.warn('⚠️ Token verification failed, using cached data:', verifyError.message);
+            // Keep using cached data if verification fails (network issues, etc.)
+          }
         }
+      } catch (error) {
+        console.error('❌ Auth initialization error:', error);
+        // Clear invalid data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('userData');
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
-    checkAuthStatus();
+    initializeAuth();
   }, []);
 
-  const login = async (credentials) => {
+  // Login function
+  const login = async (email, password, rememberMe = false) => {
     try {
       setIsLoading(true);
+      const response = await authService.login(email, password);
       
-      // For demo purposes, accept any email/password or use mock login
-      if (credentials.email && credentials.password) {
-        const mockUser = {
-          id: 1,
-          firstName: 'John',
-          lastName: 'Doe',
-          name: 'John Doe',
-          email: credentials.email,
-          phone: '+91 98765 43210',
-          role: 'user',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop'
-        };
+      if (response.success) {
+        const { token, user: userData } = response.data;
         
-        localStorage.setItem('authToken', 'demo-token');
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        setUser(mockUser);
+        // Store in localStorage or sessionStorage based on rememberMe
+        const storage = rememberMe ? localStorage : sessionStorage;
+        storage.setItem('authToken', token);
+        storage.setItem('userData', JSON.stringify(userData));
+        
+        setUser(userData);
         setIsAuthenticated(true);
-        return { success: true, user: mockUser };
+        
+        console.log('✅ User logged in:', userData.email);
+        return { success: true, user: userData };
       } else {
-        throw new Error('Please enter email and password');
+        return { success: false, error: response.error };
       }
     } catch (error) {
-      console.error('Login failed:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Login failed. Please try again.' 
-      };
+      console.error('❌ Login error:', error);
+      return { success: false, error: error.message || 'Login failed' };
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Register function
   const register = async (userData) => {
     try {
       setIsLoading(true);
+      const response = await authService.register(userData);
       
-      // For demo purposes, create a mock user
-      const mockUser = {
-        id: Date.now(),
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        name: `${userData.firstName} ${userData.lastName}`,
-        email: userData.email,
-        phone: userData.phone,
-        role: 'user',
-        avatar: null
-      };
-      
-      localStorage.setItem('authToken', 'demo-token');
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      return { success: true, user: mockUser };
+      if (response.success) {
+        console.log('✅ User registered:', userData.email);
+        return { success: true, data: response.data };
+      } else {
+        return { success: false, error: response.error };
+      }
     } catch (error) {
-      console.error('Registration failed:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Registration failed. Please try again.' 
-      };
+      console.error('❌ Registration error:', error);
+      return { success: false, error: error.message || 'Registration failed' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  const updateProfile = async (profileData) => {
+  // Verify email function
+  const verifyEmail = async (email, otp) => {
     try {
-      const updatedUser = { ...user, ...profileData };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      return { success: true, user: updatedUser };
+      setIsLoading(true);
+      const response = await authService.verifyEmail(email, otp);
+      
+      if (response.success) {
+        console.log('✅ Email verified successfully:', email);
+        return { success: true, data: response.data };
+      } else {
+        return { success: false, error: response.error };
+      }
     } catch (error) {
-      console.error('Profile update failed:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Profile update failed. Please try again.' 
-      };
+      console.error('❌ Email verification error:', error);
+      return { success: false, error: error.message || 'Verification failed' };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Mock user data for development (remove in production)
-  const mockLogin = (userType = 'user') => {
-    const mockUsers = {
-      user: {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '+91 98765 43210',
-        role: 'user',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop'
-      },
-      admin: {
-        id: 2,
-        name: 'Admin User',
-        email: 'admin@gujaratestate.com',
-        phone: '+91 98765 43200',
-        role: 'admin',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'
-      }
-    };
+  // Resend verification function
+  const resendVerification = async (email) => {
+    try {
+      const response = await authService.resendVerification(email);
+      return response;
+    } catch (error) {
+      console.error('❌ Resend verification error:', error);
+      return { success: false, error: error.message || 'Failed to resend verification' };
+    }
+  };
 
-    const mockUser = mockUsers[userType];
-    localStorage.setItem('authToken', 'mock-token-' + userType);
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    return { success: true, user: mockUser };
+  // Forgot password function
+  const forgotPassword = async (email) => {
+    try {
+      const response = await authService.forgotPassword(email);
+      return response;
+    } catch (error) {
+      console.error('❌ Forgot password error:', error);
+      return { success: false, error: error.message || 'Failed to send reset code' };
+    }
+  };
+
+  // Verify reset OTP function
+  const verifyResetOTP = async (email, otp) => {
+    try {
+      const response = await authService.verifyResetOTP(email, otp);
+      return response;
+    } catch (error) {
+      console.error('❌ Verify reset OTP error:', error);
+      return { success: false, error: error.message || 'Failed to verify reset code' };
+    }
+  };
+
+  // Reset password function
+  const resetPassword = async (resetToken, newPassword, confirmPassword) => {
+    try {
+      const response = await authService.resetPassword(resetToken, newPassword, confirmPassword);
+      return response;
+    } catch (error) {
+      console.error('❌ Reset password error:', error);
+      return { success: false, error: error.message || 'Failed to reset password' };
+    }
+  };
+
+  // Logout function
+  const logout = () => {
+    // Clear all storage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userData');
+    
+    setUser(null);
+    setIsAuthenticated(false);
+    
+    console.log('✅ User logged out');
+  };
+
+  // Update user profile
+  const updateProfile = (updatedData) => {
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    
+    // Update stored data
+    const storage = localStorage.getItem('authToken') ? localStorage : sessionStorage;
+    storage.setItem('userData', JSON.stringify(updatedUser));
+    
+    console.log('✅ User profile updated');
+  };
+
+  // Get user profile from server
+  const getProfile = async () => {
+    try {
+      const response = await authService.getProfile();
+      if (response.success) {
+        const userData = response.data.user;
+        setUser(userData);
+        
+        // Update stored data
+        const storage = localStorage.getItem('authToken') ? localStorage : sessionStorage;
+        storage.setItem('userData', JSON.stringify(userData));
+        
+        return { success: true, user: userData };
+      } else {
+        return { success: false, error: response.error };
+      }
+    } catch (error) {
+      console.error('❌ Get profile error:', error);
+      return { success: false, error: error.message || 'Failed to get profile' };
+    }
+  };
+
+  // Clear cache and force refresh
+  const clearCache = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userData');
+    setUser(null);
+    setIsAuthenticated(false);
+    console.log('✅ Cache cleared');
+  };
+
+  // Check if user data is from cache
+  const isDataFromCache = () => {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+    return !!(token && userData && user);
+  };
+
+  // Check if user has specific role
+  const hasRole = (role) => {
+    return user && user.role === role;
+  };
+
+  // Check if user is verified
+  const isVerified = () => {
+    return user && user.verified;
   };
 
   const value = {
@@ -165,9 +274,18 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     register,
+    verifyEmail,
+    resendVerification,
+    forgotPassword,
+    verifyResetOTP,
+    resetPassword,
     logout,
     updateProfile,
-    mockLogin, // For development only
+    getProfile,
+    clearCache,
+    isDataFromCache,
+    hasRole,
+    isVerified
   };
 
   return (
