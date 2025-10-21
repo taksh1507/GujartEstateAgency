@@ -16,22 +16,49 @@ class EmailService {
                 return;
             }
 
-            this.transporter = nodemailer.createTransport({
-                service: 'gmail',
-                host: 'smtp.gmail.com',
-                port: 587,
-                secure: false,
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASSWORD
+            // Try multiple SMTP configurations for better reliability
+            const smtpConfigs = [
+                // Gmail with different ports and security settings
+                {
+                    name: 'Gmail TLS',
+                    service: 'gmail',
+                    host: 'smtp.gmail.com',
+                    port: 587,
+                    secure: false,
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASSWORD
+                    },
+                    tls: {
+                        rejectUnauthorized: false,
+                        ciphers: 'SSLv3'
+                    },
+                    connectionTimeout: 30000,
+                    greetingTimeout: 15000,
+                    socketTimeout: 30000
                 },
-                tls: {
-                    rejectUnauthorized: false
-                },
-                connectionTimeout: 60000, // 60 seconds
-                greetingTimeout: 30000,   // 30 seconds
-                socketTimeout: 60000      // 60 seconds
-            });
+                // Gmail SSL fallback
+                {
+                    name: 'Gmail SSL',
+                    service: 'gmail',
+                    host: 'smtp.gmail.com',
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASSWORD
+                    },
+                    tls: {
+                        rejectUnauthorized: false
+                    },
+                    connectionTimeout: 30000,
+                    greetingTimeout: 15000,
+                    socketTimeout: 30000
+                }
+            ];
+
+            // Use the first configuration for now
+            this.transporter = nodemailer.createTransport(smtpConfigs[0]);
             
             if (process.env.NODE_ENV === 'development') {
                 console.log('📧 Email service initialized with Gmail SMTP');
@@ -39,6 +66,23 @@ class EmailService {
         } catch (error) {
             console.error('❌ Email service initialization failed:', error.message);
             this.transporter = null;
+        }
+    }
+
+    /**
+     * Test email connection
+     */
+    async testConnection() {
+        if (!this.transporter) {
+            return false;
+        }
+        
+        try {
+            await this.transporter.verify();
+            return true;
+        } catch (error) {
+            console.error('❌ Email connection test failed:', error.message);
+            return false;
         }
     }
 
@@ -58,6 +102,14 @@ class EmailService {
                 console.warn('⚠️ Email service not available. Showing OTP in console for testing.');
                 console.log(`🔐 Password Reset OTP for ${email}: ${otp}`);
                 return false; // Indicate email wasn't sent but don't throw error
+            }
+
+            // Test connection before sending
+            const connectionOk = await this.testConnection();
+            if (!connectionOk) {
+                console.warn('⚠️ Email connection failed. Showing OTP in console for testing.');
+                console.log(`🔐 Password Reset OTP for ${email}: ${otp}`);
+                return false;
             }
 
             const mailOptions = {
@@ -161,6 +213,14 @@ class EmailService {
                 console.warn('⚠️ Email service not available. Showing OTP in console for testing.');
                 console.log(`📧 Email Verification OTP for ${email}: ${otp}`);
                 return false; // Indicate email wasn't sent but don't throw error
+            }
+
+            // Test connection before sending
+            const connectionOk = await this.testConnection();
+            if (!connectionOk) {
+                console.warn('⚠️ Email connection failed. Showing OTP in console for testing.');
+                console.log(`📧 Email Verification OTP for ${email}: ${otp}`);
+                return false;
             }
 
             const mailOptions = {
