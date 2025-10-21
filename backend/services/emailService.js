@@ -9,6 +9,13 @@ class EmailService {
 
     initializeTransporter() {
         try {
+            // Debug environment variables
+            console.log('🔍 Checking email environment variables...');
+            console.log('SMTP_HOST:', process.env.SMTP_HOST ? '✅ Found' : '❌ Missing');
+            console.log('SMTP_USER:', process.env.SMTP_USER ? '✅ Found' : '❌ Missing');
+            console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? '✅ Found' : '❌ Missing');
+            console.log('EMAIL_FROM:', process.env.EMAIL_FROM ? '✅ Found' : '❌ Missing');
+
             // Check if SMTP credentials are available
             if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
                 console.warn('⚠️ SMTP credentials not found. Email service will be disabled.');
@@ -16,24 +23,110 @@ class EmailService {
                 return;
             }
 
-            this.transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST,
-                port: parseInt(process.env.SMTP_PORT) || 587,
-                secure: process.env.SMTP_SECURE === 'true',
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASSWORD
-                },
-                tls: {
-                    rejectUnauthorized: false
-                }
-            });
+            // Try multiple SMTP configurations for better reliability
+            const smtpConfigs = [];
 
-            console.log('📧 Email service initialized');
+            // Add SendGrid if API key is available (most reliable)
+            if (process.env.SENDGRID_API_KEY) {
+                smtpConfigs.push({
+                    name: 'SendGrid',
+                    host: 'smtp.sendgrid.net',
+                    port: 587,
+                    secure: false,
+                    auth: {
+                        user: 'apikey',
+                        pass: process.env.SENDGRID_API_KEY
+                    }
+                });
+            }
+
+            // Add Gmail configurations
+            smtpConfigs.push(
+                // Gmail with service (recommended)
+                {
+                    name: 'Gmail Service',
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASSWORD
+                    },
+                    tls: {
+                        rejectUnauthorized: false
+                    }
+                },
+                // Gmail with manual host configuration
+                {
+                    name: 'Gmail Manual',
+                    host: process.env.SMTP_HOST,
+                    port: parseInt(process.env.SMTP_PORT) || 587,
+                    secure: process.env.SMTP_SECURE === 'true',
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASSWORD
+                    },
+                    tls: {
+                        rejectUnauthorized: false,
+                        ciphers: 'SSLv3'
+                    }
+                },
+                // Gmail SSL fallback
+                {
+                    name: 'Gmail SSL',
+                    host: 'smtp.gmail.com',
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASSWORD
+                    },
+                    tls: {
+                        rejectUnauthorized: false
+                    }
+                }
+            );
+
+            // Try the first configuration
+            this.transporter = nodemailer.createTransport(smtpConfigs[0]);
+            this.backupTransporters = smtpConfigs.slice(1).map(config => 
+                nodemailer.createTransport(config)
+            );
+
+            console.log('📧 Email service initialized with Gmail service');
         } catch (error) {
             console.error('❌ Email service initialization failed:', error.message);
             this.transporter = null;
         }
+    }
+
+    /**
+     * Test email connection with fallback to backup transporters
+     */
+    async testAndGetWorkingTransporter() {
+        // Try main transporter first
+        if (this.transporter) {
+            try {
+                await this.transporter.verify();
+                console.log('✅ Main email transporter working');
+                return this.transporter;
+            } catch (error) {
+                console.log('❌ Main transporter failed:', error.message);
+            }
+        }
+
+        // Try backup transporters
+        if (this.backupTransporters) {
+            for (let i = 0; i < this.backupTransporters.length; i++) {
+                try {
+                    await this.backupTransporters[i].verify();
+                    console.log(`✅ Backup transporter ${i + 1} working`);
+                    return this.backupTransporters[i];
+                } catch (error) {
+                    console.log(`❌ Backup transporter ${i + 1} failed:`, error.message);
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -47,8 +140,13 @@ class EmailService {
      * Send password reset OTP
      */
     async sendPasswordResetOTP(email, otp, adminName = 'Admin') {
-        if (!this.transporter) {
-            console.log(`⚠️ Email service not available. OTP: ${otp}`);
+        console.log('🚀 Attempting to send password reset OTP...');
+        
+        // Get a working transporter
+        const workingTransporter = await this.testAndGetWorkingTransporter();
+        
+        if (!workingTransporter) {
+            console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
             return false;
         }
 
@@ -85,7 +183,7 @@ class EmailService {
                 `
             };
 
-            await this.transporter.sendMail(mailOptions);
+            await workingTransporter.sendMail(mailOptions);
             console.log(`✅ Password reset OTP sent to ${email}`);
             return true;
 
@@ -100,8 +198,13 @@ class EmailService {
      * Send email verification OTP
      */
     async sendEmailVerificationOTP(email, otp, userName = 'User') {
-        if (!this.transporter) {
-            console.log(`⚠️ Email service not available. OTP: ${otp}`);
+        console.log('🚀 Attempting to send email verification OTP...');
+        
+        // Get a working transporter
+        const workingTransporter = await this.testAndGetWorkingTransporter();
+        
+        if (!workingTransporter) {
+            console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
             return false;
         }
 
@@ -138,7 +241,7 @@ class EmailService {
                 `
             };
 
-            await this.transporter.sendMail(mailOptions);
+            await workingTransporter.sendMail(mailOptions);
             console.log(`✅ Email verification OTP sent to ${email}`);
             return true;
 
