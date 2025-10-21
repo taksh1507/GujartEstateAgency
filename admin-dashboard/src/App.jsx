@@ -37,7 +37,7 @@ const PublicRoute = ({ children }) => {
 
 function AppRoutes() {
   return (
-    <Router basename={process.env.NODE_ENV === 'production' ? '/GujaratRealEstate-Admin' : '/'}>
+    <Router>
       <Routes>
         {/* Public Routes */}
         <Route 
