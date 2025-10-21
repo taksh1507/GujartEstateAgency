@@ -1,5 +1,8 @@
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const webhookEmailService = require('./webhookEmailService');
+const multiEmailService = require('./multiEmailService');
+const persistentEmailService = require('./persistentEmailService');
 
 class EmailService {
     constructor() {
@@ -98,16 +101,41 @@ class EmailService {
      */
     async sendPasswordResetOTP(email, otp, adminName = 'Admin') {
         try {
+            // Try persistent email service with extended timeouts and retries
+            console.log('🚀 Starting persistent email delivery...');
+            const result = await persistentEmailService.sendPasswordResetOTP(email, otp, adminName);
+            if (result.success) {
+                console.log(`✅ Email sent via ${result.provider} after persistent attempts`);
+                return true;
+            }
+        } catch (persistentError) {
+            console.error('❌ Persistent email service failed:', persistentError.message);
+        }
+
+        // Fallback to multi-provider service
+        try {
+            console.log('🔄 Trying multi-provider email service as fallback...');
+            const result = await multiEmailService.sendPasswordResetOTP(email, otp, adminName);
+            if (result.success) {
+                console.log(`✅ Email sent via ${result.provider}`);
+                return true;
+            }
+        } catch (multiError) {
+            console.error('❌ Multi-provider service failed:', multiError.message);
+        }
+
+        // Fallback to original Gmail SMTP
+        try {
             if (!this.transporter) {
                 console.warn('⚠️ Email service not available. Showing OTP in console for testing.');
                 console.log(`🔐 Password Reset OTP for ${email}: ${otp}`);
-                return false; // Indicate email wasn't sent but don't throw error
+                return false;
             }
 
-            // Test connection before sending
+            console.log('🔄 Trying original Gmail SMTP as fallback...');
             const connectionOk = await this.testConnection();
             if (!connectionOk) {
-                console.warn('⚠️ Email connection failed. Showing OTP in console for testing.');
+                console.warn('⚠️ Gmail connection failed. Showing OTP in console for testing.');
                 console.log(`🔐 Password Reset OTP for ${email}: ${otp}`);
                 return false;
             }
@@ -195,12 +223,23 @@ class EmailService {
         } catch (error) {
             console.error(`❌ Failed to send OTP email to ${email}:`, error);
             
-            // In development, show OTP in console as fallback
-            if (process.env.NODE_ENV === 'development') {
-                console.log(`⚠️ Email failed, OTP for testing: ${otp}`);
+            // Try webhook service as fallback
+            try {
+                console.log('🔄 Trying webhook email service as fallback...');
+                const webhookSuccess = await webhookEmailService.sendPasswordResetOTP(email, otp, adminName);
+                if (webhookSuccess) {
+                    console.log('✅ Email sent via webhook fallback');
+                    return true;
+                }
+            } catch (webhookError) {
+                console.error('❌ Webhook fallback also failed:', webhookError.message);
             }
             
-            throw new Error(`Failed to send OTP email: ${error.message}`);
+            // Final fallback: show OTP in console for testing
+            console.log(`⚠️ All email methods failed. OTP for testing: ${otp}`);
+            
+            // Don't throw error - let the application continue
+            return false;
         }
     }
 
@@ -209,16 +248,41 @@ class EmailService {
      */
     async sendEmailVerificationOTP(email, otp, userName = 'User') {
         try {
+            // Try persistent email service with extended timeouts and retries
+            console.log('🚀 Starting persistent email delivery...');
+            const result = await persistentEmailService.sendEmailVerificationOTP(email, otp, userName);
+            if (result.success) {
+                console.log(`✅ Email sent via ${result.provider} after persistent attempts`);
+                return true;
+            }
+        } catch (persistentError) {
+            console.error('❌ Persistent email service failed:', persistentError.message);
+        }
+
+        // Fallback to multi-provider service
+        try {
+            console.log('🔄 Trying multi-provider email service as fallback...');
+            const result = await multiEmailService.sendEmailVerificationOTP(email, otp, userName);
+            if (result.success) {
+                console.log(`✅ Email sent via ${result.provider}`);
+                return true;
+            }
+        } catch (multiError) {
+            console.error('❌ Multi-provider service failed:', multiError.message);
+        }
+
+        // Fallback to original Gmail SMTP
+        try {
             if (!this.transporter) {
                 console.warn('⚠️ Email service not available. Showing OTP in console for testing.');
                 console.log(`📧 Email Verification OTP for ${email}: ${otp}`);
-                return false; // Indicate email wasn't sent but don't throw error
+                return false;
             }
 
-            // Test connection before sending
+            console.log('🔄 Trying original Gmail SMTP as fallback...');
             const connectionOk = await this.testConnection();
             if (!connectionOk) {
-                console.warn('⚠️ Email connection failed. Showing OTP in console for testing.');
+                console.warn('⚠️ Gmail connection failed. Showing OTP in console for testing.');
                 console.log(`📧 Email Verification OTP for ${email}: ${otp}`);
                 return false;
             }
@@ -303,12 +367,23 @@ class EmailService {
         } catch (error) {
             console.error(`❌ Failed to send verification email to ${email}:`, error);
             
-            // In development, show OTP in console as fallback
-            if (process.env.NODE_ENV === 'development') {
-                console.log(`⚠️ Email failed, OTP for testing: ${otp}`);
+            // Try webhook service as fallback
+            try {
+                console.log('🔄 Trying webhook email service as fallback...');
+                const webhookSuccess = await webhookEmailService.sendEmailVerificationOTP(email, otp, userName);
+                if (webhookSuccess) {
+                    console.log('✅ Email sent via webhook fallback');
+                    return true;
+                }
+            } catch (webhookError) {
+                console.error('❌ Webhook fallback also failed:', webhookError.message);
             }
             
-            throw new Error(`Failed to send verification email: ${error.message}`);
+            // Final fallback: show OTP in console for testing
+            console.log(`⚠️ All email methods failed. OTP for testing: ${otp}`);
+            
+            // Don't throw error - let the application continue
+            return false;
         }
     }
 
