@@ -61,12 +61,16 @@ const generateToken = (user) => {
  */
 router.post('/register', async (req, res) => {
   try {
-    console.log('📝 Registration request body:', req.body);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📝 Registration request body:', req.body);
+    }
 
     // Validate input
     const { error, value } = registerSchema.validate(req.body);
     if (error) {
-      console.log('❌ Validation error:', error.details[0].message);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Validation error:', error.details[0].message);
+      }
       return res.status(400).json({
         success: false,
         error: 'Validation error',
@@ -125,7 +129,9 @@ router.post('/register', async (req, res) => {
     // Send verification email
     try {
       await emailService.sendEmailVerificationOTP(email, otp, firstName);
-      console.log(`📧 Verification email sent to: ${email}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📧 Verification email sent to: ${email}`);
+      }
     } catch (emailError) {
       console.error('❌ Failed to send verification email:', emailError);
       // Continue with registration even if email fails
@@ -216,7 +222,9 @@ router.post('/verify-email', async (req, res) => {
       updatedAt: new Date().toISOString()
     });
 
-    console.log(`✅ Email verified for user: ${email}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Email verified for user: ${email}`);
+    }
 
     res.json({
       success: true,
@@ -289,7 +297,9 @@ router.post('/resend-verification', async (req, res) => {
     // Send verification email
     try {
       await emailService.sendEmailVerificationOTP(email, otp, userData.firstName);
-      console.log(`📧 Verification email resent to: ${email}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📧 Verification email resent to: ${email}`);
+      }
     } catch (emailError) {
       console.error('❌ Failed to resend verification email:', emailError);
       return res.status(500).json({
@@ -361,7 +371,9 @@ router.post('/login', async (req, res) => {
       updatedAt: new Date().toISOString()
     });
 
-    console.log(`👤 User login: ${email}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`👤 User login: ${email}`);
+    }
 
     // Generate JWT token
     const token = generateToken({
@@ -448,12 +460,16 @@ router.post('/forgot-password', async (req, res) => {
       updatedAt: new Date().toISOString()
     });
 
-    console.log(`🔐 Password reset requested for: ${email}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔐 Password reset requested for: ${email}`);
+    }
 
     // Send OTP email
     try {
       await emailService.sendPasswordResetOTP(email, otp, userData.firstName);
-      console.log(`📧 Password reset OTP sent to: ${email}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📧 Password reset OTP sent to: ${email}`);
+      }
     } catch (emailError) {
       console.error('❌ Failed to send password reset email:', emailError);
       // Continue without revealing email sending failure

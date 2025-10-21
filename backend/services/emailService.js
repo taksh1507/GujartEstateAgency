@@ -9,7 +9,8 @@ class EmailService {
 
     initializeTransporter() {
         try {
-            this.transporter = nodemailer.createTransport({
+            this.transporter = nodemailer.createTransporter({
+                service: 'gmail',
                 host: 'smtp.gmail.com',
                 port: 587,
                 secure: false,
@@ -20,12 +21,13 @@ class EmailService {
                 tls: {
                     rejectUnauthorized: false
                 },
-                debug: true,
-                logger: true
+                connectionTimeout: 60000, // 60 seconds
+                greetingTimeout: 30000,   // 30 seconds
+                socketTimeout: 60000      // 60 seconds
             });
-            console.log('📧 Email service initialized with SMTP configuration');
-            console.log('📧 Email user:', process.env.EMAIL_USER);
-            console.log('📧 Email password length:', process.env.EMAIL_PASSWORD ? process.env.EMAIL_PASSWORD.length : 'undefined');
+            if (process.env.NODE_ENV === 'development') {
+                console.log('📧 Email service initialized with Gmail SMTP');
+            }
         } catch (error) {
             console.error('❌ Email service initialization failed:', error.message);
         }
@@ -122,7 +124,9 @@ class EmailService {
             };
 
             await this.transporter.sendMail(mailOptions);
-            console.log(`✅ Password reset OTP sent to ${email}`);
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`✅ Password reset OTP sent to ${email}`);
+            }
             return true;
 
         } catch (error) {
@@ -212,7 +216,9 @@ class EmailService {
             };
 
             await this.transporter.sendMail(mailOptions);
-            console.log(`✅ Email verification OTP sent to ${email}`);
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`✅ Email verification OTP sent to ${email}`);
+            }
             return true;
 
         } catch (error) {
@@ -294,7 +300,9 @@ class EmailService {
             };
 
             await this.transporter.sendMail(mailOptions);
-            console.log(`✅ Password change confirmation sent to ${email}`);
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`✅ Password change confirmation sent to ${email}`);
+            }
             return true;
 
         } catch (error) {
