@@ -501,22 +501,41 @@ router.post('/forgot-password',
         throw new Error('Failed to generate OTP');
       }
 
-      // Send OTP email (skip if email not configured)
+      // Send OTP email (with fallback to return OTP directly)
+      let emailSent = false;
+      let otpForDisplay = null;
+      
       try {
-        await emailService.sendPasswordResetOTP(email, otp, mockAdmin.name);
-        console.log(`📧 OTP email sent to ${email}`);
+        const emailResult = await emailService.sendPasswordResetOTP(email, otp, mockAdmin.name);
+        if (emailResult) {
+          emailSent = true;
+          console.log(`📧 OTP email sent to ${email}`);
+        } else {
+          console.log(`⚠️ Email failed, will return OTP directly`);
+          otpForDisplay = otp;
+        }
       } catch (emailError) {
-        console.log(`⚠️ Email not configured, OTP: ${otp} (for testing)`);
+        console.log(`⚠️ Email service failed, returning OTP directly: ${otp}`);
+        otpForDisplay = otp;
       }
 
-      res.json({
+      const response = {
         success: true,
-        message: 'OTP has been sent to your email address. Please check your inbox.',
         data: {
           expiryTime: otpResult.expiryTime,
           attemptsAllowed: otpResult.attemptsRemaining
         }
-      });
+      };
+
+      if (emailSent) {
+        response.message = 'OTP has been sent to your email address. Please check your inbox.';
+      } else {
+        response.message = 'Email service is currently unavailable. Please use the OTP displayed below.';
+        response.data.otp = otpForDisplay;
+        response.data.showOtpDirectly = true;
+      }
+
+      res.json(response);
 
     } catch (error) {
       console.error('❌ Forgot password error:', error);
