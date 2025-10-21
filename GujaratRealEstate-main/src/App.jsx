@@ -29,14 +29,14 @@ function App() {
       <SavedPropertiesProvider>
         <Router>
           <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Home />} />
-            <Route path="/properties" element={<Properties />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/profile" element={<Profile />} />
-          </Route>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Home />} />
+              <Route path="properties" element={<Properties />} />
+              <Route path="about" element={<About />} />
+              <Route path="services" element={<Services />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
             {/* Admin routes without main layout */}
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
