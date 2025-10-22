@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -20,6 +20,16 @@ function App() {
   const handleEntranceComplete = () => {
     setShowEntrance(false);
   };
+
+  // Auto-skip entrance video after 10 seconds as ultimate fallback
+  useEffect(() => {
+    const ultimateFallback = setTimeout(() => {
+      console.warn('Ultimate fallback: Skipping entrance video');
+      setShowEntrance(false);
+    }, 10000);
+
+    return () => clearTimeout(ultimateFallback);
+  }, []);
 
   if (showEntrance) {
     return <EntranceVideo onComplete={handleEntranceComplete} />;
