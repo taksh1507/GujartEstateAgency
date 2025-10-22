@@ -295,7 +295,7 @@ const Home = () => {
               Featured Properties
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Discover our hand-picked selection of premium properties in Mumbai's most sought-after locations.
+              Discover our hand-picked selection of premium properties in Mumbai's most sought-after locations. Click "View Details" for complete information.
             </p>
           </motion.div>
 
@@ -352,6 +352,114 @@ const Home = () => {
               </div>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Latest Properties Grid */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+              Latest Properties
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Browse our newest property listings with detailed information and high-quality images.
+            </p>
+          </motion.div>
+
+          {isLoading ? (
+            <div className="text-center py-16">
+              <LoadingLogo message="Loading latest properties..." />
+            </div>
+          ) : featuredProperties.length > 0 ? (
+            <>
+              {/* Properties Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                {featuredProperties.slice(0, 6).map((property, index) => (
+                  <motion.div
+                    key={property.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1, duration: 0.6 }}
+                  >
+                    <PropertyCard property={property} />
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* View All Button */}
+              <div className="text-center">
+                <button 
+                  onClick={() => navigate('/properties')}
+                  className="btn-primary inline-flex items-center px-8 py-3 text-lg"
+                >
+                  View All Properties
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-16">
+              <div className="bg-white rounded-lg p-8 shadow-sm max-w-md mx-auto">
+                <MapPin className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Properties Available</h3>
+                <p className="text-gray-600 mb-4">
+                  We're currently updating our property listings. Please check back soon!
+                </p>
+                <button 
+                  onClick={() => navigate('/contact')}
+                  className="btn-primary"
+                >
+                  Contact Us
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Property Stats */}
+      <section className="py-16 bg-primary text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+            >
+              <div className="text-4xl font-bold mb-2">500+</div>
+              <div className="text-blue-100">Properties Listed</div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              <div className="text-4xl font-bold mb-2">1000+</div>
+              <div className="text-blue-100">Happy Clients</div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
+              <div className="text-4xl font-bold mb-2">10+</div>
+              <div className="text-blue-100">Years Experience</div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              <div className="text-4xl font-bold mb-2">50+</div>
+              <div className="text-blue-100">Mumbai Areas</div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -416,6 +524,83 @@ const Home = () => {
               <p className="text-gray-600">
                 From property search to legal documentation, we handle everything for you.
               </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Property Types */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+              Property Types We Offer
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              From luxury apartments to commercial spaces, find the perfect property type for your needs.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="bg-white rounded-lg p-6 text-center shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate('/properties?propertyType=apartment')}
+            >
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Apartments</h3>
+              <p className="text-gray-600 text-sm">Modern apartments in prime Mumbai locations</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="bg-white rounded-lg p-6 text-center shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate('/properties?propertyType=villa')}
+            >
+              <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-secondary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Villas</h3>
+              <p className="text-gray-600 text-sm">Spacious villas with gardens and privacy</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="bg-white rounded-lg p-6 text-center shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate('/properties?propertyType=commercial')}
+            >
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Commercial</h3>
+              <p className="text-gray-600 text-sm">Office spaces and retail properties</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="bg-white rounded-lg p-6 text-center shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate('/properties?propertyType=plot')}
+            >
+              <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-secondary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Plots</h3>
+              <p className="text-gray-600 text-sm">Residential and commercial land plots</p>
             </motion.div>
           </div>
         </div>
