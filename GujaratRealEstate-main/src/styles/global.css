@@ -37,12 +37,6 @@
     background-color: #1e40af; /* Fallback color */
   }
 
-  /* Entrance video styles */
-  .entrance-video {
-    @apply fixed inset-0 w-full h-full object-cover;
-    z-index: 9999;
-  }
-
   /* Property card hover effects */
   .property-card {
     @apply transition-all duration-300 ease-in-out;

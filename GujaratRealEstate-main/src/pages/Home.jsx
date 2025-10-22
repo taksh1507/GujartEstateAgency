@@ -172,7 +172,7 @@ const Home = () => {
               e.target.style.display = 'none';
             }}
           >
-            {/* Local video source - replace with your actual video */}
+            {/* Local video source - Simple.mp4 background */}
             <source src="/videos/hero-bg.mp4" type="video/mp4" />
             
             {/* Fallback online video sources */}
