@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Bed, 
-  Bath, 
-  Square, 
-  Phone, 
-  MessageCircle, 
+import {
+  ArrowLeft,
+  MapPin,
+  Bed,
+  Bath,
+  Square,
+  Phone,
+  MessageCircle,
   Heart,
   Share2,
   Calendar,
@@ -30,7 +30,7 @@ const PropertyDetails = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { isPropertySaved, toggleSavedProperty } = useSavedProperties();
-  
+
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -162,7 +162,7 @@ const PropertyDetails = () => {
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back
             </button>
-            
+
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleShare}
@@ -171,19 +171,17 @@ const PropertyDetails = () => {
               >
                 <Share2 className="h-5 w-5" />
               </button>
-              
+
               <button
                 onClick={handleSaveToggle}
                 disabled={isSaving}
-                className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${
-                  isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 title={isAuthenticated ? (isFavorite ? 'Remove from saved' : 'Save property') : 'Sign in to save properties'}
               >
                 <Heart
-                  className={`h-5 w-5 transition-colors ${
-                    isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
-                  } ${isSaving ? 'animate-pulse' : ''}`}
+                  className={`h-5 w-5 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+                    } ${isSaving ? 'animate-pulse' : ''}`}
                 />
               </button>
             </div>
@@ -205,7 +203,7 @@ const PropertyDetails = () => {
                     className="w-full h-96 object-cover rounded-lg cursor-pointer"
                     onClick={() => setShowImageModal(true)}
                   />
-                  
+
                   {images.length > 1 && (
                     <>
                       <button
@@ -220,14 +218,14 @@ const PropertyDetails = () => {
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
-                      
+
                       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
                         {currentImageIndex + 1} / {images.length}
                       </div>
                     </>
                   )}
                 </div>
-                
+
                 {/* Thumbnail Gallery */}
                 {images.length > 1 && (
                   <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
@@ -235,9 +233,8 @@ const PropertyDetails = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                          index === currentImageIndex ? 'border-primary' : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${index === currentImageIndex ? 'border-primary' : 'border-gray-200 hover:border-gray-300'
+                          }`}
                       >
                         <img
                           src={image}
@@ -362,7 +359,7 @@ const PropertyDetails = () => {
                   <MessageCircle className="h-5 w-5" />
                   Send Inquiry
                 </button>
-                
+
                 <a
                   href={`tel:${property.agent?.phone || '+91 98765 43210'}`}
                   className="w-full bg-secondary text-white py-3 px-4 rounded-lg hover:bg-amber-600 transition-colors font-medium flex items-center justify-center gap-2"
@@ -399,14 +396,14 @@ const PropertyDetails = () => {
           >
             <X className="h-8 w-8" />
           </button>
-          
+
           <div className="relative max-w-4xl max-h-full">
             <img
               src={images[currentImageIndex]}
               alt={`${property.title} - Image ${currentImageIndex + 1}`}
               className="max-w-full max-h-full object-contain"
             />
-            
+
             {images.length > 1 && (
               <>
                 <button
@@ -421,7 +418,7 @@ const PropertyDetails = () => {
                 >
                   <ChevronRight className="h-6 w-6" />
                 </button>
-                
+
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full">
                   {currentImageIndex + 1} / {images.length}
                 </div>

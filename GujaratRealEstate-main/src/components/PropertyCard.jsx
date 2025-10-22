@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSavedProperties } from '../context/SavedPropertiesContext';
 import InquiryModal from './InquiryModal';
+import PropertyDetailsModal from './PropertyDetailsModal';
 import toast from 'react-hot-toast';
 
 const PropertyCard = ({ property, autoPlay = false }) => {
@@ -14,6 +15,7 @@ const PropertyCard = ({ property, autoPlay = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const navigate = useNavigate();
 
   const isFavorite = isPropertySaved(property.id);
@@ -287,7 +289,7 @@ const PropertyCard = ({ property, autoPlay = false }) => {
         {/* Action Buttons */}
         <div className="flex gap-2 mb-3">
           <button 
-            onClick={() => navigate(`/property/${id}`)}
+            onClick={() => setShowDetailsModal(true)}
             className="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition-colors duration-200 text-sm font-medium"
           >
             View Details
@@ -315,6 +317,14 @@ const PropertyCard = ({ property, autoPlay = false }) => {
           isOpen={showInquiryModal}
           onClose={() => setShowInquiryModal(false)}
           property={property}
+        />
+
+        {/* Property Details Modal */}
+        <PropertyDetailsModal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          propertyId={id}
+          initialProperty={property}
         />
 
         {/* Agent Info */}
