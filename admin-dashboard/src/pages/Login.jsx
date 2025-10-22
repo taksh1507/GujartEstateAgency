@@ -112,14 +112,11 @@ const Login = () => {
             </button>
           </div>
 
-          {/* Forgot Password Link */}
+          {/* Admin credentials info */}
           <div className="text-center">
-            <a
-              href="/forgot-password"
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Forgot your password?
-            </a>
+            <p className="text-sm text-gray-600">
+              Admin credentials are configured in environment variables
+            </p>
           </div>
 
           {/* Development only - Mock Login */}
@@ -136,7 +133,7 @@ const Login = () => {
 
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            For demo purposes, use any email/password or click Mock Login
+            Default: admin@mumbaiestate.com / admin123
           </p>
         </div>
       </div>

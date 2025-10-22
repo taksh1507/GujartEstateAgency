@@ -15,14 +15,14 @@ const loginSchema = Joi.object({
 
 
 
-// Mock admin user (same as in auth.js)
-const mockAdmin = {
-  id: 1,
-  email: 'takshgandhi4@gmail.com',
-  password: '$2a$10$UTQWwQ7HaF9/9.d99mE6Wu2Sp7nw4yH9xy/ZM.37Qzck/mRSX7mzy', // password: 'admin123'
-  name: 'Taksh Gandhi',
+// Get admin credentials from environment variables
+const getAdminCredentials = () => ({
+  id: 'admin-001',
+  email: process.env.ADMIN_EMAIL || 'admin@mumbaiestate.com',
+  password: process.env.ADMIN_PASSWORD || 'admin123',
+  name: process.env.ADMIN_NAME || 'Mumbai Estate Admin',
   role: 'admin'
-};
+});
 
 /**
  * @route POST /api/admin/login
@@ -41,20 +41,12 @@ router.post('/login',
       console.log(`🔍 Trimmed password: "${password}"`);
       console.log(`🔍 Password length: ${password.length}`);
 
-      // Check if admin exists
-      if (email !== mockAdmin.email) {
-        console.log(`❌ Email mismatch`);
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid credentials',
-          message: 'Email or password is incorrect'
-        });
-      }
+      // Get admin credentials from environment
+      const admin = getAdminCredentials();
 
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, mockAdmin.password);
-
-      if (!isValidPassword) {
+      // Simple credential check (no bcrypt needed)
+      if (email !== admin.email || password !== admin.password) {
+        console.log(`❌ Invalid credentials for: ${email}`);
         return res.status(401).json({
           success: false,
           error: 'Invalid credentials',
@@ -64,9 +56,10 @@ router.post('/login',
 
       // Generate JWT token
       const token = generateToken({
-        id: mockAdmin.id,
-        email: mockAdmin.email,
-        role: mockAdmin.role
+        id: admin.id,
+        email: admin.email,
+        role: admin.role,
+        name: admin.name
       });
 
       console.log(`✅ Admin login successful: ${email}`);
@@ -75,10 +68,10 @@ router.post('/login',
         success: true,
         data: {
           user: {
-            id: mockAdmin.id,
-            name: mockAdmin.name,
-            email: mockAdmin.email,
-            role: mockAdmin.role
+            id: admin.id,
+            name: admin.name,
+            email: admin.email,
+            role: admin.role
           },
           token
         },
@@ -474,7 +467,8 @@ const otpService = require('../services/otpService');
  * @desc Request password reset OTP
  * @access Public
  */
-router.post('/forgot-password',
+// REMOVED: Forgot password functionality - admin password can only be changed in .env file
+// router.post('/forgot-password',
   validateRequest(Joi.object({
     email: Joi.string().email().required()
   })),
@@ -553,7 +547,8 @@ router.post('/forgot-password',
  * @desc Verify OTP for password reset
  * @access Public
  */
-router.post('/verify-otp',
+// REMOVED: OTP verification - admin password can only be changed in .env file
+// router.post('/verify-otp',
   validateRequest(Joi.object({
     email: Joi.string().email().required(),
     otp: Joi.string().length(6).pattern(/^[0-9]+$/).required()
@@ -618,7 +613,8 @@ router.post('/verify-otp',
  * @desc Reset password using verified token
  * @access Public
  */
-router.post('/reset-password',
+// REMOVED: Password reset - admin password can only be changed in .env file
+// router.post('/reset-password',
   validateRequest(Joi.object({
     resetToken: Joi.string().required(),
     newPassword: Joi.string().min(8).required(),
