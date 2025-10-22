@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SavedPropertiesProvider } from './context/SavedPropertiesContext';
-import LoadingScreen from './components/LoadingScreen';
 import EntranceVideo from './components/EntranceVideo';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
@@ -16,20 +15,11 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
   const [showEntrance, setShowEntrance] = useState(true);
-
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-  };
 
   const handleEntranceComplete = () => {
     setShowEntrance(false);
   };
-
-  if (isLoading) {
-    return <LoadingScreen onComplete={handleLoadingComplete} />;
-  }
 
   if (showEntrance) {
     return <EntranceVideo onComplete={handleEntranceComplete} />;
