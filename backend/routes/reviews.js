@@ -1,6 +1,6 @@
 const express = require('express');
 const { db } = require('../config/firebase');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateUser } = require('../middleware/auth');
 const router = express.Router();
 
 // Get all approved reviews (public)
@@ -34,7 +34,7 @@ router.get('/approved', async (req, res) => {
 });
 
 // Get user's own reviews
-router.get('/my-reviews', authenticateToken, async (req, res) => {
+router.get('/my-reviews', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.id;
     const reviewsRef = db.collection('reviews');
@@ -65,7 +65,7 @@ router.get('/my-reviews', authenticateToken, async (req, res) => {
 });
 
 // Submit a new review
-router.post('/submit', authenticateToken, async (req, res) => {
+router.post('/submit', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.id;
     const { rating, comment, propertyId } = req.body;
@@ -123,7 +123,7 @@ router.post('/submit', authenticateToken, async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Review submitted successfully! It will be visible after admin approval.',
+      message: 'Review submitted successfully !',
       data: {
         id: reviewRef.id,
         ...reviewData
@@ -140,7 +140,7 @@ router.post('/submit', authenticateToken, async (req, res) => {
 });
 
 // Update user's own review
-router.put('/:reviewId', authenticateToken, async (req, res) => {
+router.put('/:reviewId', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.id;
     const reviewId = req.params.reviewId;
@@ -213,7 +213,7 @@ router.put('/:reviewId', authenticateToken, async (req, res) => {
 });
 
 // Delete user's own review
-router.delete('/:reviewId', authenticateToken, async (req, res) => {
+router.delete('/:reviewId', authenticateUser, async (req, res) => {
   try {
     const userId = req.user.id;
     const reviewId = req.params.reviewId;
