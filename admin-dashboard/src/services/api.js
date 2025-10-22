@@ -108,6 +108,9 @@ export const authAPI = {
   }
 };
 
+// Export adminAPI as an alias to authAPI for backward compatibility
+export const adminAPI = authAPI;
+
 // Properties API
 export const propertiesAPI = {
   getAll: async (params = {}) => {

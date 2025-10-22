@@ -532,50 +532,17 @@ const otpService = require('../services/otpService');
       res.json(response);
 
     } catch (error) {
-      console.error('❌ Forgot password error:', error);
+      console.error('❌ Error:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to process password reset request',
+        error: 'Internal server error',
         message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
       });
     }
   }
 );
 
-/**
- * @route POST /api/admin/verify-otp
- * @desc Verify OTP for password reset
- * @access Public
- */
-// REMOVED: OTP verification - admin password can only be changed in .env file
-// router.post('/verify-otp',
-  validateRequest(Joi.object({
-    email: Joi.string().email().required(),
-    otp: Joi.string().length(6).pattern(/^[0-9]+$/).required()
-  })),
-  async (req, res) => {
-    try {
-      const { email, otp } = req.body;
-
-      console.log(`🔍 OTP verification attempt for: ${email}`);
-
-      // Verify OTP
-      const verificationResult = otpService.verifyOTP(email, otp, 'password_reset');
-
-      if (!verificationResult.success) {
-        return res.status(400).json({
-          success: false,
-          error: verificationResult.error,
-          message: verificationResult.message,
-          attemptsRemaining: verificationResult.attemptsRemaining
-        });
-      }
-
-      // Generate a temporary token for password reset (valid for 15 minutes)
-      const resetToken = require('crypto').randomBytes(32).toString('hex');
-      const resetTokenExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
-
-      // Store reset token (in production, use database)
+// REMOVED: All OTP and password reset functionality - admin password can only be changed in .env file
       global.passwordResetTokens = global.passwordResetTokens || new Map();
       global.passwordResetTokens.set(resetToken, {
         email,
@@ -601,12 +568,7 @@ const otpService = require('../services/otpService');
       console.error('❌ OTP verification error:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to verify OTP',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-      });
-    }
-  }
-);
+// REMOVED: Password reset functionality
 
 /**
  * @route POST /api/admin/reset-password
