@@ -157,8 +157,41 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-primary to-blue-800 text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
+      <section className="relative bg-gradient-to-r from-primary to-blue-800 text-white overflow-hidden">
+        {/* Video Background */}
+        <div className="absolute inset-0">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover opacity-70"
+            poster="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&h=1080&fit=crop&q=80"
+            onError={(e) => {
+              // Hide video on error and show gradient background
+              e.target.style.display = 'none';
+            }}
+          >
+            {/* Local video source - replace with your actual video */}
+            <source src="/videos/hero-bg.mp4" type="video/mp4" />
+            
+            {/* Fallback online video sources */}
+            <source
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+              type="video/mp4"
+            />
+            
+            {/* WebM format for better compression */}
+            <source
+              src="https://sample-videos.com/zip/10/webm/SampleVideo_1280x720_1mb.webm"
+              type="video/webm"
+            />
+          </video>
+          
+          {/* Video Overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/70 to-blue-800/70"></div>
+          <div className="absolute inset-0 bg-black/20"></div>
+        </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

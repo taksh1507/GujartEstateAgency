@@ -25,4 +25,44 @@
   .input-field {
     @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none;
   }
+
+  /* Video background styles */
+  .video-background {
+    @apply absolute inset-0 w-full h-full object-cover;
+    z-index: -1;
+  }
+
+  /* Video loading and error states */
+  video {
+    background-color: #1e40af; /* Fallback color */
+  }
+
+  /* Entrance video styles */
+  .entrance-video {
+    @apply fixed inset-0 w-full h-full object-cover;
+    z-index: 9999;
+  }
+
+  /* Property card hover effects */
+  .property-card {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .property-card:hover {
+    @apply transform -translate-y-1 shadow-xl;
+  }
+}
+
+/* Video performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  video {
+    animation: none;
+  }
+}
+
+/* Mobile video optimizations */
+@media (max-width: 768px) {
+  video {
+    object-position: center center;
+  }
 }
