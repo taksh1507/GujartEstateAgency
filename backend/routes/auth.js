@@ -347,9 +347,10 @@ router.post('/login', async (req, res) => {
     const userQuery = await usersRef.where('email', '==', email).get();
 
     if (userQuery.empty) {
-      return res.status(401).json({
+      return res.status(404).json({
         success: false,
-        error: 'Invalid email or password'
+        error: 'No account found with this email address. Please sign up first.',
+        errorType: 'ACCOUNT_NOT_FOUND'
       });
     }
 
@@ -361,7 +362,8 @@ router.post('/login', async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid email or password'
+        error: 'Incorrect password. Please try again.',
+        errorType: 'INVALID_PASSWORD'
       });
     }
 

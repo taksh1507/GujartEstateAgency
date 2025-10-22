@@ -66,7 +66,35 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
         toast.success(`Welcome back, ${result.user.firstName}!`);
         onClose();
       } else {
-        toast.error(result.error || 'Login failed');
+        // Handle specific error types
+        if (result.errorType === 'ACCOUNT_NOT_FOUND') {
+          toast.error(result.error || 'No account found with this email address');
+          // Suggest sign up after a short delay
+          setTimeout(() => {
+            toast((t) => (
+              <div className="flex flex-col gap-2">
+                <span>Would you like to create an account instead?</span>
+                <button
+                  onClick={() => {
+                    toast.dismiss(t.id);
+                    setMode('register');
+                    setRegisterData(prev => ({ ...prev, email: loginData.email }));
+                  }}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                >
+                  Sign Up
+                </button>
+              </div>
+            ), {
+              duration: 6000,
+              icon: '💡'
+            });
+          }, 1500);
+        } else if (result.errorType === 'INVALID_PASSWORD') {
+          toast.error(result.error || 'Incorrect password');
+        } else {
+          toast.error(result.error || 'Login failed');
+        }
       }
     } catch (error) {
       toast.error('Login failed. Please try again.');

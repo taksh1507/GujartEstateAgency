@@ -2,10 +2,10 @@
 const mockProperties = [
   {
     id: 1,
-    title: "Luxury 3BHK Apartment in Ahmedabad",
-    description: "Beautiful 3BHK apartment with modern amenities and stunning city views. Located in the heart of Ahmedabad with easy access to shopping centers, schools, and hospitals.",
-    price: 15000000,
-    location: "Ahmedabad, Gujarat",
+    title: "Luxury 3BHK Apartment in Kandivali West",
+    description: "Beautiful 3BHK apartment with modern amenities and stunning city views. Located in the heart of Kandivali West with easy access to shopping centers, schools, and hospitals.",
+    price: 18000000,
+    location: "Kandivali West, Mumbai",
     images: [
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
@@ -22,17 +22,17 @@ const mockProperties = [
     agent: { 
       name: "Rajesh Patel", 
       phone: "+91 98765 43210",
-      email: "rajesh@gujaratestate.com"
+      email: "rajesh@mumbaiestate.com"
     },
     createdAt: "2024-01-15T10:30:00Z",
     updatedAt: "2024-01-15T10:30:00Z"
   },
   {
     id: 2,
-    title: "Modern 2BHK for Rent in Surat",
-    description: "Fully furnished 2BHK apartment available for rent in prime location of Surat. Perfect for small families or working professionals.",
-    price: 35000,
-    location: "Surat, Gujarat", 
+    title: "Modern 2BHK for Rent in Kandivali East",
+    description: "Fully furnished 2BHK apartment available for rent in prime location of Kandivali East. Perfect for small families or working professionals.",
+    price: 45000,
+    location: "Kandivali East, Mumbai", 
     images: [
       "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop"
@@ -48,17 +48,17 @@ const mockProperties = [
     agent: { 
       name: "Priya Shah", 
       phone: "+91 98765 43211",
-      email: "priya@gujaratestate.com"
+      email: "priya@mumbaiestate.com"
     },
     createdAt: "2024-01-14T14:20:00Z",
     updatedAt: "2024-01-14T14:20:00Z"
   },
   {
     id: 3,
-    title: "Spacious 4BHK Villa with Garden in Vadodara",
+    title: "Spacious 4BHK Villa with Garden in Borivali West",
     description: "Independent villa with beautiful garden, perfect for large families. Located in peaceful residential area with all modern amenities.",
-    price: 25000000,
-    location: "Vadodara, Gujarat",
+    price: 35000000,
+    location: "Borivali West, Mumbai",
     images: [
       "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=600&fit=crop",
@@ -76,17 +76,17 @@ const mockProperties = [
     agent: { 
       name: "Amit Kumar", 
       phone: "+91 98765 43212",
-      email: "amit@gujaratestate.com"
+      email: "amit@mumbaiestate.com"
     },
     createdAt: "2024-01-13T09:15:00Z",
     updatedAt: "2024-01-13T09:15:00Z"
   },
   {
     id: 4,
-    title: "Commercial Office Space in Ahmedabad",
-    description: "Prime commercial office space in business district of Ahmedabad. Ideal for IT companies, startups, and corporate offices.",
-    price: 8000000,
-    location: "Ahmedabad, Gujarat",
+    title: "Commercial Office Space in Malad West",
+    description: "Prime commercial office space in business district of Malad West. Ideal for IT companies, startups, and corporate offices.",
+    price: 12000000,
+    location: "Malad West, Mumbai",
     images: [
       "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop"

@@ -98,7 +98,11 @@ export const AuthProvider = ({ children }) => {
         console.log('✅ User logged in:', userData.email);
         return { success: true, user: userData };
       } else {
-        return { success: false, error: response.error };
+        return { 
+          success: false, 
+          error: response.error,
+          errorType: response.errorType 
+        };
       }
     } catch (error) {
       console.error('❌ Login error:', error);

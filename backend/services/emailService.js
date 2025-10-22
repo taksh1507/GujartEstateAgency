@@ -2,164 +2,164 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 class EmailService {
-    constructor() {
+  constructor() {
+    this.transporter = null;
+    this.initializeTransporter();
+  }
+
+  initializeTransporter() {
+    try {
+      // Debug environment variables
+      console.log('🔍 Checking email environment variables...');
+      console.log('SMTP_HOST:', process.env.SMTP_HOST ? '✅ Found' : '❌ Missing');
+      console.log('SMTP_USER:', process.env.SMTP_USER ? '✅ Found' : '❌ Missing');
+      console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? '✅ Found' : '❌ Missing');
+      console.log('EMAIL_FROM:', process.env.EMAIL_FROM ? '✅ Found' : '❌ Missing');
+
+      // Check if SMTP credentials are available
+      if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+        console.warn('⚠️ SMTP credentials not found. Email service will be disabled.');
         this.transporter = null;
-        this.initializeTransporter();
+        return;
+      }
+
+      // Try multiple SMTP configurations for better reliability
+      const smtpConfigs = [];
+
+      // Add SendGrid if API key is available (most reliable)
+      if (process.env.SENDGRID_API_KEY) {
+        smtpConfigs.push({
+          name: 'SendGrid',
+          host: 'smtp.sendgrid.net',
+          port: 587,
+          secure: false,
+          auth: {
+            user: 'apikey',
+            pass: process.env.SENDGRID_API_KEY
+          }
+        });
+      }
+
+      // Add Gmail configurations
+      smtpConfigs.push(
+        // Gmail with service (recommended)
+        {
+          name: 'Gmail Service',
+          service: 'gmail',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASSWORD
+          },
+          tls: {
+            rejectUnauthorized: false
+          }
+        },
+        // Gmail with manual host configuration
+        {
+          name: 'Gmail Manual',
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASSWORD
+          },
+          tls: {
+            rejectUnauthorized: false,
+            ciphers: 'SSLv3'
+          }
+        },
+        // Gmail SSL fallback
+        {
+          name: 'Gmail SSL',
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASSWORD
+          },
+          tls: {
+            rejectUnauthorized: false
+          }
+        }
+      );
+
+      // Try the first configuration
+      this.transporter = nodemailer.createTransport(smtpConfigs[0]);
+      this.backupTransporters = smtpConfigs.slice(1).map(config =>
+        nodemailer.createTransport(config)
+      );
+
+      console.log('📧 Email service initialized with Gmail service');
+    } catch (error) {
+      console.error('❌ Email service initialization failed:', error.message);
+      this.transporter = null;
+    }
+  }
+
+  /**
+   * Test email connection with fallback to backup transporters
+   */
+  async testAndGetWorkingTransporter() {
+    // Try main transporter first
+    if (this.transporter) {
+      try {
+        await this.transporter.verify();
+        console.log('✅ Main email transporter working');
+        return this.transporter;
+      } catch (error) {
+        console.log('❌ Main transporter failed:', error.message);
+      }
     }
 
-    initializeTransporter() {
+    // Try backup transporters
+    if (this.backupTransporters) {
+      for (let i = 0; i < this.backupTransporters.length; i++) {
         try {
-            // Debug environment variables
-            console.log('🔍 Checking email environment variables...');
-            console.log('SMTP_HOST:', process.env.SMTP_HOST ? '✅ Found' : '❌ Missing');
-            console.log('SMTP_USER:', process.env.SMTP_USER ? '✅ Found' : '❌ Missing');
-            console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? '✅ Found' : '❌ Missing');
-            console.log('EMAIL_FROM:', process.env.EMAIL_FROM ? '✅ Found' : '❌ Missing');
-
-            // Check if SMTP credentials are available
-            if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-                console.warn('⚠️ SMTP credentials not found. Email service will be disabled.');
-                this.transporter = null;
-                return;
-            }
-
-            // Try multiple SMTP configurations for better reliability
-            const smtpConfigs = [];
-
-            // Add SendGrid if API key is available (most reliable)
-            if (process.env.SENDGRID_API_KEY) {
-                smtpConfigs.push({
-                    name: 'SendGrid',
-                    host: 'smtp.sendgrid.net',
-                    port: 587,
-                    secure: false,
-                    auth: {
-                        user: 'apikey',
-                        pass: process.env.SENDGRID_API_KEY
-                    }
-                });
-            }
-
-            // Add Gmail configurations
-            smtpConfigs.push(
-                // Gmail with service (recommended)
-                {
-                    name: 'Gmail Service',
-                    service: 'gmail',
-                    auth: {
-                        user: process.env.SMTP_USER,
-                        pass: process.env.SMTP_PASSWORD
-                    },
-                    tls: {
-                        rejectUnauthorized: false
-                    }
-                },
-                // Gmail with manual host configuration
-                {
-                    name: 'Gmail Manual',
-                    host: process.env.SMTP_HOST,
-                    port: parseInt(process.env.SMTP_PORT) || 587,
-                    secure: process.env.SMTP_SECURE === 'true',
-                    auth: {
-                        user: process.env.SMTP_USER,
-                        pass: process.env.SMTP_PASSWORD
-                    },
-                    tls: {
-                        rejectUnauthorized: false,
-                        ciphers: 'SSLv3'
-                    }
-                },
-                // Gmail SSL fallback
-                {
-                    name: 'Gmail SSL',
-                    host: 'smtp.gmail.com',
-                    port: 465,
-                    secure: true,
-                    auth: {
-                        user: process.env.SMTP_USER,
-                        pass: process.env.SMTP_PASSWORD
-                    },
-                    tls: {
-                        rejectUnauthorized: false
-                    }
-                }
-            );
-
-            // Try the first configuration
-            this.transporter = nodemailer.createTransport(smtpConfigs[0]);
-            this.backupTransporters = smtpConfigs.slice(1).map(config => 
-                nodemailer.createTransport(config)
-            );
-
-            console.log('📧 Email service initialized with Gmail service');
+          await this.backupTransporters[i].verify();
+          console.log(`✅ Backup transporter ${i + 1} working`);
+          return this.backupTransporters[i];
         } catch (error) {
-            console.error('❌ Email service initialization failed:', error.message);
-            this.transporter = null;
+          console.log(`❌ Backup transporter ${i + 1} failed:`, error.message);
         }
+      }
     }
 
-    /**
-     * Test email connection with fallback to backup transporters
-     */
-    async testAndGetWorkingTransporter() {
-        // Try main transporter first
-        if (this.transporter) {
-            try {
-                await this.transporter.verify();
-                console.log('✅ Main email transporter working');
-                return this.transporter;
-            } catch (error) {
-                console.log('❌ Main transporter failed:', error.message);
-            }
-        }
+    return null;
+  }
 
-        // Try backup transporters
-        if (this.backupTransporters) {
-            for (let i = 0; i < this.backupTransporters.length; i++) {
-                try {
-                    await this.backupTransporters[i].verify();
-                    console.log(`✅ Backup transporter ${i + 1} working`);
-                    return this.backupTransporters[i];
-                } catch (error) {
-                    console.log(`❌ Backup transporter ${i + 1} failed:`, error.message);
-                }
-            }
-        }
+  /**
+   * Generate a 6-digit OTP
+   */
+  generateOTP() {
+    return crypto.randomInt(100000, 999999).toString();
+  }
 
-        return null;
+  /**
+   * Send password reset OTP
+   */
+  async sendPasswordResetOTP(email, otp, adminName = 'Admin') {
+    console.log('🚀 Attempting to send password reset OTP...');
+
+    // Get a working transporter
+    const workingTransporter = await this.testAndGetWorkingTransporter();
+
+    if (!workingTransporter) {
+      console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
+      return false;
     }
 
-    /**
-     * Generate a 6-digit OTP
-     */
-    generateOTP() {
-        return crypto.randomInt(100000, 999999).toString();
-    }
-
-    /**
-     * Send password reset OTP
-     */
-    async sendPasswordResetOTP(email, otp, adminName = 'Admin') {
-        console.log('🚀 Attempting to send password reset OTP...');
-        
-        // Get a working transporter
-        const workingTransporter = await this.testAndGetWorkingTransporter();
-        
-        if (!workingTransporter) {
-            console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
-            return false;
-        }
-
-        try {
-            const mailOptions = {
-                from: process.env.EMAIL_FROM,
-                to: email,
-                subject: '🔐 Password Reset OTP - Gujarat Real Estate',
-                html: `
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: '🔐 Password Reset OTP - Mumbai Real Estate',
+        html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
                             <h1>🔐 Password Reset Request</h1>
-                            <p>Gujarat Real Estate Admin Panel</p>
+                            <p>Mumbai Real Estate Admin Panel</p>
                         </div>
                         
                         <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -181,42 +181,42 @@ class EmailService {
                         </div>
                     </div>
                 `
-            };
+      };
 
-            await workingTransporter.sendMail(mailOptions);
-            console.log(`✅ Password reset OTP sent to ${email}`);
-            return true;
+      await workingTransporter.sendMail(mailOptions);
+      console.log(`✅ Password reset OTP sent to ${email}`);
+      return true;
 
-        } catch (error) {
-            console.error(`❌ Failed to send OTP email to ${email}:`, error.message);
-            console.log(`⚠️ Email failed. OTP: ${otp}`);
-            return false;
-        }
+    } catch (error) {
+      console.error(`❌ Failed to send OTP email to ${email}:`, error.message);
+      console.log(`⚠️ Email failed. OTP: ${otp}`);
+      return false;
+    }
+  }
+
+  /**
+   * Send email verification OTP
+   */
+  async sendEmailVerificationOTP(email, otp, userName = 'User') {
+    console.log('🚀 Attempting to send email verification OTP...');
+
+    // Get a working transporter
+    const workingTransporter = await this.testAndGetWorkingTransporter();
+
+    if (!workingTransporter) {
+      console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
+      return false;
     }
 
-    /**
-     * Send email verification OTP
-     */
-    async sendEmailVerificationOTP(email, otp, userName = 'User') {
-        console.log('🚀 Attempting to send email verification OTP...');
-        
-        // Get a working transporter
-        const workingTransporter = await this.testAndGetWorkingTransporter();
-        
-        if (!workingTransporter) {
-            console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
-            return false;
-        }
-
-        try {
-            const mailOptions = {
-                from: process.env.EMAIL_FROM,
-                to: email,
-                subject: '🔐 Verify Your Email - Gujarat Real Estate',
-                html: `
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: '🔐 Verify Your Email - Mumbai Real Estate',
+        html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                            <h1>🎉 Welcome to Gujarat Real Estate!</h1>
+                            <h1>🎉 Welcome to Mumbai Real Estate!</h1>
                             <p>Verify your email to get started</p>
                         </div>
                         
@@ -239,38 +239,38 @@ class EmailService {
                         </div>
                     </div>
                 `
-            };
+      };
 
-            await workingTransporter.sendMail(mailOptions);
-            console.log(`✅ Email verification OTP sent to ${email}`);
-            return true;
+      await workingTransporter.sendMail(mailOptions);
+      console.log(`✅ Email verification OTP sent to ${email}`);
+      return true;
 
-        } catch (error) {
-            console.error(`❌ Failed to send verification email to ${email}:`, error.message);
-            console.log(`⚠️ Email failed. OTP: ${otp}`);
-            return false;
-        }
+    } catch (error) {
+      console.error(`❌ Failed to send verification email to ${email}:`, error.message);
+      console.log(`⚠️ Email failed. OTP: ${otp}`);
+      return false;
+    }
+  }
+
+  /**
+   * Send password change confirmation
+   */
+  async sendPasswordChangeConfirmation(email, adminName = 'Admin') {
+    if (!this.transporter) {
+      console.log('⚠️ Email service not available for confirmation');
+      return false;
     }
 
-    /**
-     * Send password change confirmation
-     */
-    async sendPasswordChangeConfirmation(email, adminName = 'Admin') {
-        if (!this.transporter) {
-            console.log('⚠️ Email service not available for confirmation');
-            return false;
-        }
-
-        try {
-            const mailOptions = {
-                from: process.env.EMAIL_FROM,
-                to: email,
-                subject: '✅ Password Changed Successfully - Gujarat Real Estate',
-                html: `
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: '✅ Password Changed Successfully - Mumbai Real Estate',
+        html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                         <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
                             <h1>✅ Password Changed Successfully</h1>
-                            <p>Gujarat Real Estate Admin Panel</p>
+                            <p>Mumbai Real Estate Admin Panel</p>
                         </div>
                         
                         <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -285,17 +285,17 @@ class EmailService {
                         </div>
                     </div>
                 `
-            };
+      };
 
-            await this.transporter.sendMail(mailOptions);
-            console.log(`✅ Password change confirmation sent to ${email}`);
-            return true;
+      await this.transporter.sendMail(mailOptions);
+      console.log(`✅ Password change confirmation sent to ${email}`);
+      return true;
 
-        } catch (error) {
-            console.error(`❌ Failed to send confirmation email to ${email}:`, error.message);
-            return false;
-        }
+    } catch (error) {
+      console.error(`❌ Failed to send confirmation email to ${email}:`, error.message);
+      return false;
     }
+  }
 }
 
 module.exports = new EmailService();

@@ -33,9 +33,9 @@ const Home = () => {
           setFeaturedProperties([
             {
               id: 'sample-1',
-              title: "Luxury 3BHK Apartment in Ahmedabad",
-              price: 8500000,
-              location: "Ahmedabad, Gujarat",
+              title: "Luxury 3BHK Apartment in Kandivali West",
+              price: 12500000,
+              location: "Kandivali West, Mumbai",
               images: ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=250&fit=crop"],
               beds: 3,
               baths: 2,
@@ -43,13 +43,13 @@ const Home = () => {
               type: "Sale",
               propertyType: "apartment",
               status: "active",
-              agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+              agent: { name: "Mumbai Estate Agent", phone: "+91 98765 43210" }
             },
             {
               id: 'sample-2',
-              title: "Modern 2BHK for Rent in Surat",
-              price: 35000,
-              location: "Surat, Gujarat",
+              title: "Modern 2BHK for Rent in Kandivali East",
+              price: 45000,
+              location: "Kandivali East, Mumbai",
               images: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop"],
               beds: 2,
               baths: 1,
@@ -57,13 +57,13 @@ const Home = () => {
               type: "Rent",
               propertyType: "apartment",
               status: "active",
-              agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+              agent: { name: "Mumbai Estate Agent", phone: "+91 98765 43210" }
             },
             {
               id: 'sample-3',
-              title: "Spacious 4BHK Villa in Vadodara",
-              price: 15000000,
-              location: "Vadodara, Gujarat",
+              title: "Spacious 4BHK Villa in Borivali West",
+              price: 25000000,
+              location: "Borivali West, Mumbai",
               images: ["https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&h=250&fit=crop"],
               beds: 4,
               baths: 3,
@@ -71,7 +71,7 @@ const Home = () => {
               type: "Sale",
               propertyType: "villa",
               status: "active",
-              agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+              agent: { name: "Mumbai Estate Agent", phone: "+91 98765 43210" }
             }
           ]);
         }
@@ -82,8 +82,8 @@ const Home = () => {
           {
             id: 'fallback-1',
             title: "Premium Properties Available",
-            price: 5000000,
-            location: "Gujarat, India",
+            price: 8000000,
+            location: "Kandivali, Mumbai",
             images: ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=250&fit=crop"],
             beds: 3,
             baths: 2,
@@ -91,7 +91,7 @@ const Home = () => {
             type: "Sale",
             propertyType: "apartment",
             status: "active",
-            agent: { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+            agent: { name: "Mumbai Estate Agent", phone: "+91 98765 43210" }
           }
         ]);
       } finally {
@@ -107,22 +107,22 @@ const Home = () => {
       id: 1,
       name: "Rajesh Patel",
       rating: 5,
-      comment: "Gujarat Estate Agency helped me find my dream home in Satellite area. Excellent service and professional approach!",
-      location: "Satellite, Ahmedabad"
+      comment: "Mumbai Estate Agency helped me find my dream home in Kandivali West. Excellent service and professional approach!",
+      location: "Kandivali West, Mumbai"
     },
     {
       id: 2,
       name: "Priya Sharma",
       rating: 5,
-      comment: "Very trustworthy and reliable. They guided us through the entire buying process in Surat smoothly.",
-      location: "Vesu, Surat"
+      comment: "Very trustworthy and reliable. They guided us through the entire buying process in Borivali smoothly.",
+      location: "Borivali West, Mumbai"
     },
     {
       id: 3,
       name: "Amit Kumar",
       rating: 5,
-      comment: "Found the perfect rental villa in Vadodara within my budget. Highly recommended!",
-      location: "Alkapuri, Vadodara"
+      comment: "Found the perfect rental apartment in Malad within my budget. Highly recommended!",
+      location: "Malad West, Mumbai"
     }
   ];
 
@@ -140,10 +140,10 @@ const Home = () => {
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Find Your Dream Home in
-              <span className="text-secondary block">Gujarat's Prime Cities</span>
+              <span className="text-secondary block">Mumbai's Prime Locations</span>
             </h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Gujarat Estate Agency - Your trusted partner for buying, selling, and renting properties in Ahmedabad, Surat, Vadodara, and Rajkot.
+              Mumbai Estate Agency - Your trusted partner for buying, selling, and renting properties in Kandivali, Borivali, Malad, and Goregaon.
             </p>
             
             {/* Search Bar */}
@@ -163,10 +163,14 @@ const Home = () => {
                       className="input-field pl-10 text-gray-800"
                     >
                       <option value="">All Locations</option>
-                      <option value="ahmedabad">Ahmedabad</option>
-                      <option value="surat">Surat</option>
-                      <option value="vadodara">Vadodara</option>
-                      <option value="rajkot">Rajkot</option>
+                      <option value="kandivali-west">Kandivali West</option>
+                      <option value="kandivali-east">Kandivali East</option>
+                      <option value="borivali-west">Borivali West</option>
+                      <option value="borivali-east">Borivali East</option>
+                      <option value="malad-west">Malad West</option>
+                      <option value="malad-east">Malad East</option>
+                      <option value="goregaon-west">Goregaon West</option>
+                      <option value="goregaon-east">Goregaon East</option>
                     </select>
                   </div>
                 </div>
