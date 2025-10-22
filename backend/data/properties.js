@@ -109,10 +109,10 @@ const mockProperties = [
   },
   {
     id: 5,
-    title: "Cozy 1BHK Studio Apartment",
-    description: "Perfect starter home or investment property. Compact yet comfortable 1BHK apartment in a well-maintained building.",
-    price: 25000,
-    location: "Rajkot, Gujarat",
+    title: "Cozy 1BHK Studio Apartment in Goregaon East",
+    description: "Perfect starter home or investment property. Compact yet comfortable 1BHK apartment in a well-maintained building in Goregaon East.",
+    price: 28000,
+    location: "Goregaon East, Mumbai",
     images: [
       "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop"
     ],
@@ -131,6 +131,57 @@ const mockProperties = [
     },
     createdAt: "2024-01-11T11:30:00Z",
     updatedAt: "2024-01-11T11:30:00Z"
+  },
+  {
+    id: 6,
+    title: "Premium 3BHK Flat in Andheri West",
+    description: "Luxurious 3BHK apartment in prime Andheri West location with excellent connectivity to business districts and entertainment hubs.",
+    price: 22000000,
+    location: "Andheri West, Mumbai",
+    images: [
+      "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop"
+    ],
+    beds: 3,
+    baths: 3,
+    area: 1400,
+    type: "Sale",
+    propertyType: "apartment",
+    status: "active",
+    amenities: ["Swimming Pool", "Gym", "Parking", "Security", "Elevator", "Club House"],
+    features: ["Modern Kitchen", "Balcony", "Air Conditioning", "Semi-Furnished"],
+    agent: { 
+      name: "Ravi Sharma", 
+      phone: "+91 98765 43215",
+      email: "ravi@gujaratestate.com"
+    },
+    createdAt: "2024-01-10T08:20:00Z",
+    updatedAt: "2024-01-10T08:20:00Z"
+  },
+  {
+    id: 7,
+    title: "Affordable 2BHK in Jogeshwari East",
+    description: "Well-designed 2BHK apartment in Jogeshwari East, perfect for first-time home buyers with good connectivity to Western Express Highway.",
+    price: 38000,
+    location: "Jogeshwari East, Mumbai",
+    images: [
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop"
+    ],
+    beds: 2,
+    baths: 2,
+    area: 850,
+    type: "Rent",
+    propertyType: "apartment",
+    status: "active",
+    amenities: ["Parking", "Security", "Elevator", "Power Backup"],
+    features: ["Semi-Furnished", "Balcony", "Modern Kitchen"],
+    agent: { 
+      name: "Meera Patel", 
+      phone: "+91 98765 43216",
+      email: "meera@gujaratestate.com"
+    },
+    createdAt: "2024-01-09T12:15:00Z",
+    updatedAt: "2024-01-09T12:15:00Z"
   }
 ];
 

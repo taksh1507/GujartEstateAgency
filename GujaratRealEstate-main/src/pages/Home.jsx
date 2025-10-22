@@ -120,21 +120,21 @@ const Home = () => {
               id: 1,
               userName: "Rajesh Patel",
               rating: 5,
-              comment: "Gujarat Estate Agency helped me find my dream home in Satellite area. Excellent service and professional approach!",
+              comment: "Gujarat Estate Agency helped me find my dream home in Kandivali West. Excellent service and professional approach!",
               createdAt: new Date().toISOString()
             },
             {
               id: 2,
               userName: "Priya Sharma",
               rating: 5,
-              comment: "Very trustworthy and reliable. They guided us through the entire buying process in Surat smoothly.",
+              comment: "Very trustworthy and reliable. They guided us through the entire buying process in Borivali smoothly.",
               createdAt: new Date().toISOString()
             },
             {
               id: 3,
               userName: "Amit Kumar",
               rating: 5,
-              comment: "Found the perfect rental villa in Vadodara within my budget. Highly recommended!",
+              comment: "Found the perfect rental apartment in Malad West within my budget. Highly recommended!",
               createdAt: new Date().toISOString()
             }
           ]);
@@ -147,7 +147,7 @@ const Home = () => {
             id: 1,
             userName: "Rajesh Patel",
             rating: 5,
-            comment: "Gujarat Estate Agency helped me find my dream home in Satellite area. Excellent service and professional approach!",
+            comment: "Gujarat Estate Agency helped me find my dream home in Kandivali West. Excellent service and professional approach!",
             createdAt: new Date().toISOString()
           }
         ]);
@@ -171,10 +171,10 @@ const Home = () => {
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Find Your Dream Home in
-              <span className="text-secondary block">Gujarat's Prime Cities</span>
+              <span className="text-secondary block">Mumbai's Prime Areas</span>
             </h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Gujarat Estate Agency - Your trusted partner for buying, selling, and renting properties in Ahmedabad, Surat, Vadodara, and Rajkot.
+              Gujarat Estate Agency - Your trusted partner for buying, selling, and renting properties in Kandivali, Borivali, Malad, and nearby Mumbai areas.
             </p>
             
             {/* Search Bar */}
@@ -194,14 +194,18 @@ const Home = () => {
                       className="input-field pl-10 text-gray-800"
                     >
                       <option value="">All Locations</option>
-                      <option value="ahmedabad">Ahmedabad</option>
-                      <option value="surat">Surat</option>
-                      <option value="vadodara">Vadodara</option>
-                      <option value="rajkot">Rajkot</option>
-                      <option value="gandhinagar">Gandhinagar</option>
-                      <option value="bhavnagar">Bhavnagar</option>
-                      <option value="jamnagar">Jamnagar</option>
-                      <option value="junagadh">Junagadh</option>
+                      <option value="kandivali-west">Kandivali West</option>
+                      <option value="kandivali-east">Kandivali East</option>
+                      <option value="borivali-west">Borivali West</option>
+                      <option value="borivali-east">Borivali East</option>
+                      <option value="malad-west">Malad West</option>
+                      <option value="malad-east">Malad East</option>
+                      <option value="goregaon-west">Goregaon West</option>
+                      <option value="goregaon-east">Goregaon East</option>
+                      <option value="jogeshwari-west">Jogeshwari West</option>
+                      <option value="jogeshwari-east">Jogeshwari East</option>
+                      <option value="andheri-west">Andheri West</option>
+                      <option value="andheri-east">Andheri East</option>
                     </select>
                   </div>
                 </div>
@@ -363,7 +367,7 @@ const Home = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Local Expertise</h3>
               <p className="text-gray-600">
-                Deep knowledge of Kandivali and Mumbai markets with insider insights on the best deals.
+                Deep knowledge of Kandivali, Borivali, Malad and nearby Mumbai markets with insider insights on the best deals.
               </p>
             </motion.div>
 
