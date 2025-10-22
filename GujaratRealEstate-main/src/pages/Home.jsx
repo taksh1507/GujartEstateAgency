@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, MapPin, Star, ArrowRight } from 'lucide-react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
 import Logo from '../components/Logo';
 import LoadingLogo from '../components/LoadingLogo';
 import { propertyService } from '../services/propertyService';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -282,7 +277,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Properties */}
+
+
+      {/* Latest Properties Grid */}
       <section className="py-16 bg-neutral-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -292,89 +289,16 @@ const Home = () => {
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-              Featured Properties
+              Our Properties
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Discover our hand-picked selection of premium properties in Mumbai's most sought-after locations. Click "View Details" for complete information.
+              Discover our premium property listings in Mumbai's most sought-after locations. Click "View Details" for complete information and high-quality images.
             </p>
           </motion.div>
 
           {isLoading ? (
             <div className="text-center py-16">
-              <LoadingLogo message="Loading featured properties..." />
-            </div>
-          ) : featuredProperties.length > 0 ? (
-            <>
-              <Swiper
-                modules={[Navigation, Pagination, Autoplay]}
-                spaceBetween={30}
-                slidesPerView={1}
-                navigation
-                pagination={{ clickable: true }}
-                autoplay={{ delay: 4000 }}
-                breakpoints={{
-                  640: { slidesPerView: 2 },
-                  1024: { slidesPerView: 3 }
-                }}
-                className="pb-12"
-              >
-                {featuredProperties.map((property) => (
-                  <SwiperSlide key={property.id}>
-                    <PropertyCard property={property} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-
-              <div className="text-center mt-8">
-                <button 
-                  onClick={() => navigate('/properties')}
-                  className="btn-primary inline-flex items-center"
-                >
-                  View All Properties
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-16">
-              <div className="bg-white rounded-lg p-8 shadow-sm max-w-md mx-auto">
-                <MapPin className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Properties Available</h3>
-                <p className="text-gray-600 mb-4">
-                  We're currently updating our property listings. Please check back soon!
-                </p>
-                <button 
-                  onClick={() => navigate('/contact')}
-                  className="btn-primary"
-                >
-                  Contact Us
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Latest Properties Grid */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-              Latest Properties
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Browse our newest property listings with detailed information and high-quality images.
-            </p>
-          </motion.div>
-
-          {isLoading ? (
-            <div className="text-center py-16">
-              <LoadingLogo message="Loading latest properties..." />
+              <LoadingLogo message="Loading properties..." />
             </div>
           ) : featuredProperties.length > 0 ? (
             <>
