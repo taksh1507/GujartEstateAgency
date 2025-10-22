@@ -142,8 +142,13 @@ const PropertyCard = ({ property, autoPlay = false }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ 
+        y: -8,
+        boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+        transition: { duration: 0.3 }
+      }}
       transition={{ duration: 0.5 }}
-      className="card overflow-hidden group relative"
+      className="card overflow-hidden group relative transform-gpu"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -156,12 +161,13 @@ const PropertyCard = ({ property, autoPlay = false }) => {
       >
         <motion.img
           key={currentImageIndex} // Force re-render for smooth transition
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.3 }}
           src={currentImage}
           alt={`${title} - Image ${currentImageIndex + 1}`}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-48 object-cover"
           onError={(e) => {
             // Fallback if image fails to load
             e.target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=250&fit=crop';

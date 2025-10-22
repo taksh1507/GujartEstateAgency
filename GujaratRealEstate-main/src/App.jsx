@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SavedPropertiesProvider } from './context/SavedPropertiesContext';
-import EntranceVideo from './components/EntranceVideo';
+import AnimatedEntrance from './components/AnimatedEntrance';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Properties from './pages/Properties';
@@ -21,18 +21,18 @@ function App() {
     setShowEntrance(false);
   };
 
-  // Auto-skip entrance video after 7 seconds as ultimate fallback (reduced due to smaller video size)
+  // Auto-skip entrance animation after 5 seconds as ultimate fallback
   useEffect(() => {
     const ultimateFallback = setTimeout(() => {
-      console.warn('Ultimate fallback: Skipping entrance video');
+      console.warn('Ultimate fallback: Skipping entrance animation');
       setShowEntrance(false);
-    }, 7000);
+    }, 5000);
 
     return () => clearTimeout(ultimateFallback);
   }, []);
 
   if (showEntrance) {
-    return <EntranceVideo onComplete={handleEntranceComplete} />;
+    return <AnimatedEntrance onComplete={handleEntranceComplete} />;
   }
 
   return (

@@ -4,7 +4,8 @@ import { Search, MapPin, Star, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
 import Logo from '../components/Logo';
-import LoadingLogo from '../components/LoadingLogo';
+import AnimatedLoader from '../components/AnimatedLoader';
+import PageTransition from '../components/PageTransition';
 import { propertyService } from '../services/propertyService';
 
 const Home = () => {
@@ -155,74 +156,62 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <PageTransition className="min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-primary to-blue-800 text-white overflow-hidden">
-        {/* Video Background */}
+        {/* Animated Background Elements */}
         <div className="absolute inset-0">
-          <video
-            muted
-            loop
-            playsInline
-            preload="auto"
-            autoPlay
-            className="w-full h-full object-cover opacity-70"
-            poster="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&h=1080&fit=crop&q=80"
-            onError={(e) => {
-              console.error('Hero background video failed to load:', e.target.error);
-              // Hide video on error and show gradient background
-              e.target.style.display = 'none';
-            }}
-            onLoadStart={() => {
-              console.log('Hero background video loading started');
-            }}
-            onCanPlay={(e) => {
-              console.log('Hero background video can play');
-              // Try to play the video once it's ready
-              e.target.play().catch((error) => {
-                console.warn('Hero background video autoplay failed:', error);
-              });
-            }}
-            onLoadedData={() => {
-              console.log('Hero background video data loaded');
-            }}
-            onPlay={() => {
-              console.log('Hero background video started playing');
-            }}
-            ref={(video) => {
-              if (video) {
-                // Try to play when component mounts
-                const playVideo = () => {
-                  video.play().catch((error) => {
-                    console.warn('Hero background video play failed:', error);
-                  });
-                };
-                
-                // Add click listener to start video on user interaction
-                const handleUserInteraction = () => {
-                  playVideo();
-                  document.removeEventListener('click', handleUserInteraction);
-                  document.removeEventListener('touchstart', handleUserInteraction);
-                };
-                
-                document.addEventListener('click', handleUserInteraction);
-                document.addEventListener('touchstart', handleUserInteraction);
-                
-                // Also try to play immediately
-                setTimeout(playVideo, 1000);
-              }
-            }}
-          >
-            {/* Local video source - Simple.mp4 background */}
-            <source src="/videos/hero-bg.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          {/* Floating geometric shapes */}
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute opacity-10"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -50, 0],
+                x: [0, Math.random() * 30 - 15, 0],
+                rotate: [0, 360],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 8 + Math.random() * 4,
+                repeat: Infinity,
+                delay: Math.random() * 3,
+                ease: "easeInOut"
+              }}
+            >
+              {i % 3 === 0 ? (
+                <div className="w-16 h-16 border-2 border-white rounded-full" />
+              ) : i % 3 === 1 ? (
+                <div className="w-12 h-12 bg-white transform rotate-45" />
+              ) : (
+                <div className="w-0 h-0 border-l-8 border-r-8 border-b-12 border-l-transparent border-r-transparent border-b-white" />
+              )}
+            </motion.div>
+          ))}
           
-          {/* Video Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/70 to-blue-800/70"></div>
-          <div className="absolute inset-0 bg-black/20"></div>
+          {/* Animated gradient overlay */}
+          <motion.div
+            className="absolute inset-0"
+            animate={{
+              background: [
+                "linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.2))",
+                "linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.1))",
+                "linear-gradient(225deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.2))",
+                "linear-gradient(315deg, rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.1))"
+              ]
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -231,24 +220,74 @@ const Home = () => {
           >
             {/* Company Logo */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="flex justify-center mb-8"
+              initial={{ opacity: 0, scale: 0.8, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8, type: "spring", stiffness: 100 }}
+              className="flex justify-center mb-8 relative"
             >
-              <Logo 
-                className="scale-150" 
-                variant="white"
-                iconClassName="h-12 w-12"
-                textClassName="text-2xl"
-                showText={true}
-              />
+              <div className="relative">
+                <Logo 
+                  className="scale-150" 
+                  variant="white"
+                  iconClassName="h-12 w-12"
+                  textClassName="text-2xl"
+                  showText={true}
+                />
+                
+                {/* Glowing effect around logo */}
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  animate={{
+                    boxShadow: [
+                      "0 0 20px rgba(255, 255, 255, 0.3)",
+                      "0 0 40px rgba(255, 255, 255, 0.5)",
+                      "0 0 20px rgba(255, 255, 255, 0.3)"
+                    ]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </div>
             </motion.div>
             
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Dream Home in
-              <span className="text-secondary block">Mumbai's Prime Areas</span>
-            </h1>
+            <motion.h1 
+              className="text-4xl md:text-6xl font-bold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+              >
+                Find Your Dream Home in
+              </motion.span>
+              <motion.span 
+                className="text-secondary block"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, duration: 0.6 }}
+              >
+                <motion.span
+                  animate={{
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                  className="bg-gradient-to-r from-secondary via-yellow-300 to-secondary bg-clip-text text-transparent"
+                  style={{ backgroundSize: "200% 100%" }}
+                >
+                  Mumbai's Prime Areas
+                </motion.span>
+              </motion.span>
+            </motion.h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Gujarat Estate Agency - Your trusted partner for buying, selling, and renting properties in Kandivali, Borivali, Malad, and nearby Mumbai areas.
             </p>
@@ -361,7 +400,7 @@ const Home = () => {
 
           {isLoading ? (
             <div className="text-center py-16">
-              <LoadingLogo message="Loading properties..." />
+              <AnimatedLoader message="Loading properties..." size="large" />
             </div>
           ) : featuredProperties.length > 0 ? (
             <>
@@ -411,40 +450,140 @@ const Home = () => {
       </section>
 
       {/* Property Stats */}
-      <section className="py-16 bg-primary text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-primary text-white relative overflow-hidden">
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.3, 1, 0.3],
+              }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
               transition={{ delay: 0.1, duration: 0.6 }}
+              className="relative"
             >
-              <div className="text-4xl font-bold mb-2">500+</div>
+              <motion.div 
+                className="text-4xl font-bold mb-2"
+                animate={{ 
+                  textShadow: [
+                    "0 0 10px rgba(255,255,255,0.5)",
+                    "0 0 20px rgba(255,255,255,0.8)",
+                    "0 0 10px rgba(255,255,255,0.5)"
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                500+
+              </motion.div>
               <div className="text-blue-100">Properties Listed</div>
+              <motion.div
+                className="absolute inset-0 border-2 border-white/20 rounded-lg"
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              />
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
               transition={{ delay: 0.2, duration: 0.6 }}
+              className="relative"
             >
-              <div className="text-4xl font-bold mb-2">1000+</div>
+              <motion.div 
+                className="text-4xl font-bold mb-2"
+                animate={{ 
+                  textShadow: [
+                    "0 0 10px rgba(255,255,255,0.5)",
+                    "0 0 20px rgba(255,255,255,0.8)",
+                    "0 0 10px rgba(255,255,255,0.5)"
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+              >
+                1000+
+              </motion.div>
               <div className="text-blue-100">Happy Clients</div>
+              <motion.div
+                className="absolute inset-0 border-2 border-white/20 rounded-lg"
+                animate={{ rotate: [0, -360] }}
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              />
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
               transition={{ delay: 0.3, duration: 0.6 }}
+              className="relative"
             >
-              <div className="text-4xl font-bold mb-2">10+</div>
+              <motion.div 
+                className="text-4xl font-bold mb-2"
+                animate={{ 
+                  textShadow: [
+                    "0 0 10px rgba(255,255,255,0.5)",
+                    "0 0 20px rgba(255,255,255,0.8)",
+                    "0 0 10px rgba(255,255,255,0.5)"
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+              >
+                10+
+              </motion.div>
               <div className="text-blue-100">Years Experience</div>
+              <motion.div
+                className="absolute inset-0 border-2 border-white/20 rounded-lg"
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              />
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
               transition={{ delay: 0.4, duration: 0.6 }}
+              className="relative"
             >
-              <div className="text-4xl font-bold mb-2">50+</div>
+              <motion.div 
+                className="text-4xl font-bold mb-2"
+                animate={{ 
+                  textShadow: [
+                    "0 0 10px rgba(255,255,255,0.5)",
+                    "0 0 20px rgba(255,255,255,0.8)",
+                    "0 0 10px rgba(255,255,255,0.5)"
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+              >
+                50+
+              </motion.div>
               <div className="text-blue-100">Mumbai Areas</div>
+              <motion.div
+                className="absolute inset-0 border-2 border-white/20 rounded-lg"
+                animate={{ rotate: [0, -360] }}
+                transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+              />
             </motion.div>
           </div>
         </div>
@@ -471,12 +610,23 @@ const Home = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -5, scale: 1.02 }}
               transition={{ delay: 0.1, duration: 0.6 }}
-              className="text-center"
+              className="text-center group"
             >
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="h-8 w-8 text-primary" />
-              </div>
+              <motion.div 
+                className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 relative overflow-hidden"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
+                <MapPin className="h-8 w-8 text-primary relative z-10" />
+                <motion.div
+                  className="absolute inset-0 bg-primary/20 rounded-full"
+                  initial={{ scale: 0 }}
+                  whileHover={{ scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
               <h3 className="text-xl font-semibold mb-2">Local Expertise</h3>
               <p className="text-gray-600">
                 Deep knowledge of Kandivali, Borivali, Malad and nearby Mumbai markets with insider insights on the best deals.
@@ -486,12 +636,23 @@ const Home = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -5, scale: 1.02 }}
               transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-center"
+              className="text-center group"
             >
-              <div className="bg-secondary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-secondary" />
-              </div>
+              <motion.div 
+                className="bg-secondary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 relative overflow-hidden"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
+                <Star className="h-8 w-8 text-secondary relative z-10" />
+                <motion.div
+                  className="absolute inset-0 bg-secondary/20 rounded-full"
+                  initial={{ scale: 0 }}
+                  whileHover={{ scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
               <h3 className="text-xl font-semibold mb-2">Trusted Service</h3>
               <p className="text-gray-600">
                 Hundreds of satisfied customers with 5-star reviews and transparent dealings.
@@ -501,12 +662,23 @@ const Home = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -5, scale: 1.02 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-center"
+              className="text-center group"
             >
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ArrowRight className="h-8 w-8 text-primary" />
-              </div>
+              <motion.div 
+                className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 relative overflow-hidden"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
+                <ArrowRight className="h-8 w-8 text-primary relative z-10" />
+                <motion.div
+                  className="absolute inset-0 bg-primary/20 rounded-full"
+                  initial={{ scale: 0 }}
+                  whileHover={{ scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
               <h3 className="text-xl font-semibold mb-2">End-to-End Support</h3>
               <p className="text-gray-600">
                 From property search to legal documentation, we handle everything for you.
@@ -636,7 +808,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-    </div>
+    </PageTransition>
   );
 };
 
