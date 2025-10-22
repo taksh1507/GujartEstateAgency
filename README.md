@@ -1,6 +1,6 @@
-# 🏠 Gujarat Real Estate Agency
+# 🏠 Gujarat Estate Agency
 
-A comprehensive real estate management platform with separate admin dashboard and frontend website, built with React, Node.js, Firebase, and Cloudinary.
+A comprehensive real estate management platform specializing in Mumbai properties with separate admin dashboard and frontend website, built with React, Node.js, Firebase, and Cloudinary.
 
 ## 🌟 Features
 
@@ -158,26 +158,42 @@ npm run dev:frontend   # Frontend Website (port 5173)
 
 ## 🔐 Default Admin Credentials
 
-- **Email**: `takshgandhi4@gmail.com`
-- **Password**: `admin123`
+- **Email**: `yourgmailaccount@gmail.com`
+- **Password**: `password setup `
 
 ## 📦 Deployment
 
 ### Quick Deploy (15 minutes)
-```bash
-# Follow the quick deployment guide
-cat QUICK_DEPLOY.md
-```
 
-### Production Deployment
-1. **Backend** → Railway
-2. **Admin Dashboard** → Vercel
-3. **Frontend Website** → Vercel
+#### 1. Backend → Railway
+1. Go to [railway.app](https://railway.app)
+2. New Project → Deploy from GitHub
+3. Select your repo, set root to `backend`
+4. Add environment variables (see `backend/.env.example`)
+5. Deploy!
 
-See detailed guides:
-- [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
-- [Railway Deployment](RAILWAY_DEPLOYMENT.md)
-- [Vercel Deployment](VERCEL_DEPLOYMENT.md)
+#### 2. Admin Dashboard → Vercel
+1. Go to [vercel.com](https://vercel.com)
+2. New Project → Import from GitHub
+3. Set root directory to `admin-dashboard`
+4. Add environment variables:
+   ```env
+   VITE_API_BASE_URL=https://your-backend.railway.app/api
+   VITE_APP_NAME=Gujarat Estate Admin
+   VITE_FIREBASE_PROJECT_ID=gujarat-estate-agency-aa5ac
+   ```
+5. Deploy!
+
+#### 3. Frontend Website → Vercel
+1. Go to [vercel.com](https://vercel.com) (new project)
+2. Import SAME GitHub repo
+3. Set root directory to `GujaratRealEstate-main`
+4. Add environment variables:
+   ```env
+   VITE_API_BASE_URL=https://your-backend.railway.app/api
+   VITE_APP_NAME=Gujarat Real Estate
+   ```
+5. Deploy!
 
 ## 🛠️ Built With
 
@@ -265,12 +281,9 @@ cd GujaratRealEstate-main && npm test
 
 ## 📚 Documentation
 
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Complete deployment instructions
-- [Quick Deploy](QUICK_DEPLOY.md) - 15-minute deployment guide
-- [Railway Deployment](RAILWAY_DEPLOYMENT.md) - Backend deployment
-- [Vercel Deployment](VERCEL_DEPLOYMENT.md) - Frontend deployments
-- [Firebase Setup](FIREBASE_SETUP.md) - Firebase configuration
 - [Changelog](CHANGELOG.md) - Version history
+- Environment examples in each project folder
+- Configuration files included for deployment
 
 ## 🤝 Contributing
 
@@ -313,4 +326,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ in Gujarat, India**
+**Made with ❤️ for Mumbai Real Estate**

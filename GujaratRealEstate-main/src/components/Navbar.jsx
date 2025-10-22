@@ -4,6 +4,7 @@ import { Menu, X, Home, Building2, Info, Mail, Phone, User, LogIn, UserPlus, Log
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
+import Logo from './Logo';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -33,9 +34,12 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <Building2 className="h-8 w-8 text-white" />
-            <span className="text-white font-bold text-xl">Gujarat Estate Agency</span>
+          <Link to="/" className="flex items-center">
+            <Logo 
+              iconClassName="text-white" 
+              textClassName="text-white" 
+              showText={true}
+            />
           </Link>
 
           {/* Desktop Navigation */}

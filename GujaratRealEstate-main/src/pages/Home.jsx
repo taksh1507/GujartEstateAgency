@@ -5,6 +5,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
+import Logo from '../components/Logo';
+import LoadingLogo from '../components/LoadingLogo';
 import { propertyService } from '../services/propertyService';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -169,6 +171,21 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
+            {/* Company Logo */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="flex justify-center mb-8"
+            >
+              <Logo 
+                className="scale-150" 
+                iconClassName="text-white h-12 w-12" 
+                textClassName="text-white text-2xl" 
+                showText={true}
+              />
+            </motion.div>
+            
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Find Your Dream Home in
               <span className="text-secondary block">Mumbai's Prime Areas</span>
@@ -283,8 +300,7 @@ const Home = () => {
 
           {isLoading ? (
             <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading featured properties...</p>
+              <LoadingLogo message="Loading featured properties..." />
             </div>
           ) : featuredProperties.length > 0 ? (
             <>

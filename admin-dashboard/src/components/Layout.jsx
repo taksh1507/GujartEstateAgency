@@ -47,7 +47,15 @@ const Layout = () => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
           <div className="flex h-16 items-center justify-between px-4">
-            <h1 className="text-xl font-bold text-gray-900">Gujarat Estate Admin</h1>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <div className="h-8 w-8 bg-primary-600 rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">GE</span>
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary-500 rounded-full"></div>
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">Gujarat Estate Admin</h1>
+            </div>
             <button
               onClick={() => setSidebarOpen(false)}
               className="text-gray-400 hover:text-gray-600"
@@ -82,7 +90,15 @@ const Layout = () => {
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           <div className="flex h-16 items-center px-4">
-            <h1 className="text-xl font-bold text-gray-900">Gujarat Estate Admin</h1>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <div className="h-8 w-8 bg-primary-600 rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">GE</span>
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary-500 rounded-full"></div>
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">Gujarat Estate Admin</h1>
+            </div>
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
