@@ -21,12 +21,12 @@ function App() {
     setShowEntrance(false);
   };
 
-  // Auto-skip entrance video after 10 seconds as ultimate fallback
+  // Auto-skip entrance video after 7 seconds as ultimate fallback (reduced due to smaller video size)
   useEffect(() => {
     const ultimateFallback = setTimeout(() => {
       console.warn('Ultimate fallback: Skipping entrance video');
       setShowEntrance(false);
-    }, 10000);
+    }, 7000);
 
     return () => clearTimeout(ultimateFallback);
   }, []);

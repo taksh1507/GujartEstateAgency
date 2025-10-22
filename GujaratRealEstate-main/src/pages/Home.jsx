@@ -161,31 +161,61 @@ const Home = () => {
         {/* Video Background */}
         <div className="absolute inset-0">
           <video
-            autoPlay
             muted
             loop
             playsInline
+            preload="auto"
+            autoPlay
             className="w-full h-full object-cover opacity-70"
             poster="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&h=1080&fit=crop&q=80"
             onError={(e) => {
+              console.error('Hero background video failed to load:', e.target.error);
               // Hide video on error and show gradient background
               e.target.style.display = 'none';
+            }}
+            onLoadStart={() => {
+              console.log('Hero background video loading started');
+            }}
+            onCanPlay={(e) => {
+              console.log('Hero background video can play');
+              // Try to play the video once it's ready
+              e.target.play().catch((error) => {
+                console.warn('Hero background video autoplay failed:', error);
+              });
+            }}
+            onLoadedData={() => {
+              console.log('Hero background video data loaded');
+            }}
+            onPlay={() => {
+              console.log('Hero background video started playing');
+            }}
+            ref={(video) => {
+              if (video) {
+                // Try to play when component mounts
+                const playVideo = () => {
+                  video.play().catch((error) => {
+                    console.warn('Hero background video play failed:', error);
+                  });
+                };
+                
+                // Add click listener to start video on user interaction
+                const handleUserInteraction = () => {
+                  playVideo();
+                  document.removeEventListener('click', handleUserInteraction);
+                  document.removeEventListener('touchstart', handleUserInteraction);
+                };
+                
+                document.addEventListener('click', handleUserInteraction);
+                document.addEventListener('touchstart', handleUserInteraction);
+                
+                // Also try to play immediately
+                setTimeout(playVideo, 1000);
+              }
             }}
           >
             {/* Local video source - Simple.mp4 background */}
             <source src="/videos/hero-bg.mp4" type="video/mp4" />
-            
-            {/* Fallback online video sources */}
-            <source
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-              type="video/mp4"
-            />
-            
-            {/* WebM format for better compression */}
-            <source
-              src="https://sample-videos.com/zip/10/webm/SampleVideo_1280x720_1mb.webm"
-              type="video/webm"
-            />
+            Your browser does not support the video tag.
           </video>
           
           {/* Video Overlay for better text readability */}
