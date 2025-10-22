@@ -59,10 +59,39 @@ export const propertyService = {
   // Get single property by ID
   getPropertyById: async (id) => {
     try {
+      console.log(`🏠 Fetching property ${id} from API...`);
       const response = await api.get(`/properties/${id}`);
-      return response.data;
+      console.log('📡 Property API Response:', response.data);
+      
+      if (response.data.success && response.data.data) {
+        const property = response.data.data;
+        
+        // Transform the property to match expected format
+        const transformedProperty = {
+          ...property,
+          // Ensure images is an array
+          images: typeof property.images === 'string' 
+            ? property.images.split(' ').filter(img => img.trim()) 
+            : property.images || [],
+          // Use first image as main image for backward compatibility
+          image: typeof property.images === 'string' 
+            ? property.images.split(' ')[0] 
+            : property.images?.[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=250&fit=crop',
+          // Ensure agent is an object
+          agent: typeof property.agent === 'string' 
+            ? JSON.parse(property.agent) 
+            : property.agent || { name: "Gujarat Estate Agent", phone: "+91 98765 43210" }
+        };
+        
+        console.log(`✅ Loaded property ${id} from Firebase`);
+        return transformedProperty;
+      }
+      
+      console.log('⚠️ Property not found in API, using mock data');
+      return getMockPropertyById(id);
     } catch (error) {
-      console.error('Failed to fetch property:', error);
+      console.error('❌ Failed to fetch property:', error);
+      console.log('🔄 Falling back to mock data');
       // Return mock property if API fails
       return getMockPropertyById(id);
     }

@@ -7,6 +7,7 @@ import LoadingScreen from './components/LoadingScreen';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Properties from './pages/Properties';
+import PropertyDetails from './pages/PropertyDetails';
 import About from './pages/About';
 import Services from './pages/Services';
 import Contact from './pages/Contact';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Home />} />
               <Route path="properties" element={<Properties />} />
+              <Route path="property/:id" element={<PropertyDetails />} />
               <Route path="about" element={<About />} />
               <Route path="services" element={<Services />} />
               <Route path="contact" element={<Contact />} />

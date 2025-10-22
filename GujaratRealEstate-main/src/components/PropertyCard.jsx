@@ -285,13 +285,12 @@ const PropertyCard = ({ property, autoPlay = false }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-3">
           <button 
-            onClick={() => setShowInquiryModal(true)}
-            className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium flex items-center justify-center gap-2"
+            onClick={() => navigate(`/property/${id}`)}
+            className="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition-colors duration-200 text-sm font-medium"
           >
-            <MessageCircle className="h-4 w-4" />
-            Inquire Now
+            View Details
           </button>
           <a
             href={`tel:${agent.phone}`}
@@ -301,6 +300,15 @@ const PropertyCard = ({ property, autoPlay = false }) => {
             <Phone className="h-4 w-4" />
           </a>
         </div>
+        
+        {/* Inquire Button */}
+        <button 
+          onClick={() => setShowInquiryModal(true)}
+          className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium flex items-center justify-center gap-2"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Inquire Now
+        </button>
 
         {/* Inquiry Modal */}
         <InquiryModal
