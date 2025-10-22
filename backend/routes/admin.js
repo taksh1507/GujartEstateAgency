@@ -1397,4 +1397,165 @@ router.put('/settings/notifications',
   }
 );
 
+// Review Management Routes
+
+// Get all reviews (pending, approved, rejected)
+router.get('/reviews', async (req, res) => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+    
+    let query = db.collection('reviews');
+    
+    if (status && status !== 'all') {
+      query = query.where('status', '==', status);
+    }
+    
+    const reviewsSnapshot = await query
+      .orderBy('createdAt', 'desc')
+      .limit(parseInt(limit))
+      .get();
+
+    const reviews = [];
+    reviewsSnapshot.forEach(doc => {
+      reviews.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+
+    // Get counts for different statuses
+    const pendingCount = await db.collection('reviews').where('status', '==', 'pending').get();
+    const approvedCount = await db.collection('reviews').where('status', '==', 'approved').get();
+    const rejectedCount = await db.collection('reviews').where('status', '==', 'rejected').get();
+
+    res.json({
+      success: true,
+      data: {
+        reviews,
+        counts: {
+          pending: pendingCount.size,
+          approved: approvedCount.size,
+          rejected: rejectedCount.size,
+          total: pendingCount.size + approvedCount.size + rejectedCount.size
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch reviews'
+    });
+  }
+});
+
+// Approve a review
+router.put('/reviews/:reviewId/approve', async (req, res) => {
+  try {
+    const reviewId = req.params.reviewId;
+
+    const reviewDoc = await db.collection('reviews').doc(reviewId).get();
+    if (!reviewDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
+    }
+
+    await db.collection('reviews').doc(reviewId).update({
+      status: 'approved',
+      approvedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    console.log(`✅ Review approved: ${reviewId}`);
+
+    res.json({
+      success: true,
+      message: 'Review approved successfully'
+    });
+
+  } catch (error) {
+    console.error('Error approving review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve review'
+    });
+  }
+});
+
+// Reject a review
+router.put('/reviews/:reviewId/reject', async (req, res) => {
+  try {
+    const reviewId = req.params.reviewId;
+    const { reason } = req.body;
+
+    const reviewDoc = await db.collection('reviews').doc(reviewId).get();
+    if (!reviewDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
+    }
+
+    const updateData = {
+      status: 'rejected',
+      rejectedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (reason) {
+      updateData.rejectionReason = reason;
+    }
+
+    await db.collection('reviews').doc(reviewId).update(updateData);
+
+    console.log(`❌ Review rejected: ${reviewId}`);
+
+    res.json({
+      success: true,
+      message: 'Review rejected successfully'
+    });
+
+  } catch (error) {
+    console.error('Error rejecting review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject review'
+    });
+  }
+});
+
+// Delete a review (admin only)
+router.delete('/reviews/:reviewId', async (req, res) => {
+  try {
+    const reviewId = req.params.reviewId;
+
+    const reviewDoc = await db.collection('reviews').doc(reviewId).get();
+    if (!reviewDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
+    }
+
+    await db.collection('reviews').doc(reviewId).delete();
+
+    console.log(`🗑️ Review deleted by admin: ${reviewId}`);
+
+    res.json({
+      success: true,
+      message: 'Review deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete review'
+    });
+  }
+});
+
 module.exports = router;

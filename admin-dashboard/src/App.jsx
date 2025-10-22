@@ -8,6 +8,7 @@ import Properties from './pages/Properties';
 import PropertyForm from './pages/PropertyForm';
 import Users from './pages/Users';
 import Inquiries from './pages/Inquiries';
+import Reviews from './pages/Reviews';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
@@ -73,6 +74,7 @@ function AppRoutes() {
           <Route path="properties/edit/:id" element={<PropertyForm />} />
           <Route path="users" element={<Users />} />
           <Route path="inquiries" element={<Inquiries />} />
+          <Route path="reviews" element={<Reviews />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />
         </Route>

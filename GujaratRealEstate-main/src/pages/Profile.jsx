@@ -10,7 +10,8 @@ import {
   X,
   Camera,
   Lock,
-  RefreshCw
+  RefreshCw,
+  Star
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSavedProperties } from '../context/SavedPropertiesContext';
@@ -59,6 +60,17 @@ const Profile = () => {
   // Real inquiries data
   const [inquiries, setInquiries] = useState([]);
   const [isLoadingInquiries, setIsLoadingInquiries] = useState(false);
+  
+  // Reviews state
+  const [userReviews, setUserReviews] = useState([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    comment: '',
+    propertyId: null
+  });
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Password change form
   const [passwordData, setPasswordData] = useState({
@@ -131,13 +143,115 @@ const Profile = () => {
     loadUserProfile();
   }, [authUser]);
 
+  // Load user reviews
+  const loadUserReviews = async () => {
+    if (!authUser) return;
+    
+    setIsLoadingReviews(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/reviews/my-reviews', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setUserReviews(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+      toast.error('Failed to load reviews');
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+
+  // Submit review
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    
+    if (!reviewForm.comment.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+    
+    if (reviewForm.comment.length < 10) {
+      toast.error('Comment must be at least 10 characters long');
+      return;
+    }
+    
+    setIsSubmittingReview(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/reviews/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(reviewForm)
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Review submitted successfully! It will be visible after admin approval.');
+        setShowReviewForm(false);
+        setReviewForm({ rating: 5, comment: '', propertyId: null });
+        loadUserReviews(); // Reload reviews
+      } else {
+        toast.error(data.message || 'Failed to submit review');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      toast.error('Failed to submit review');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  // Delete review
+  const handleDeleteReview = async (reviewId) => {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Review deleted successfully');
+        loadUserReviews(); // Reload reviews
+      } else {
+        toast.error(data.message || 'Failed to delete review');
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      toast.error('Failed to delete review');
+    }
+  };
+
+  // Load reviews when tab is selected
+  useEffect(() => {
+    if (activeTab === 'reviews' && authUser) {
+      loadUserReviews();
+    }
+  }, [activeTab, authUser]);
+
 
 
 
 
   const tabs = [
     { id: 'saved', label: 'Saved Properties', icon: Heart, count: savedProperties.length },
-    { id: 'inquiries', label: 'My Inquiries', icon: MessageSquare, count: inquiries.length }
+    { id: 'inquiries', label: 'My Inquiries', icon: MessageSquare, count: inquiries.length },
+    { id: 'reviews', label: 'My Reviews', icon: MessageSquare, count: userReviews.length }
   ];
 
   // Handle profile update
@@ -514,10 +628,171 @@ const Profile = () => {
                   )}
                 </motion.div>
               )}
+
+              {/* Reviews Tab */}
+              {activeTab === 'reviews' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-lg shadow-sm p-6"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-semibold text-gray-800">My Reviews</h3>
+                    <button
+                      onClick={() => setShowReviewForm(true)}
+                      className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Write Review
+                    </button>
+                  </div>
+
+                  {isLoadingReviews ? (
+                    <div className="text-center py-8">
+                      <RefreshCw className="h-8 w-8 text-primary animate-spin mx-auto mb-4" />
+                      <p className="text-gray-600">Loading your reviews...</p>
+                    </div>
+                  ) : userReviews.length > 0 ? (
+                    <div className="space-y-4">
+                      {userReviews.map((review) => (
+                        <div key={review.id} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex text-yellow-400">
+                                {[...Array(5)].map((_, i) => (
+                                  <span key={i} className={i < review.rating ? 'text-yellow-400' : 'text-gray-300'}>
+                                    ★
+                                  </span>
+                                ))}
+                              </div>
+                              <span className="text-sm text-gray-500">
+                                {new Date(review.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                review.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                review.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteReview(review.id)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                                title="Delete review"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-gray-700">{review.comment}</p>
+                          {review.status === 'rejected' && review.rejectionReason && (
+                            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                              <strong>Rejection reason:</strong> {review.rejectionReason}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">No Reviews Yet</h3>
+                      <p className="text-gray-600 mb-4">Share your experience with our service!</p>
+                      <button
+                        onClick={() => setShowReviewForm(true)}
+                        className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Write Your First Review
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </div>
           </div>
         </div>
       </section>
+
+      {/* Review Form Modal */}
+      {showReviewForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg shadow-xl max-w-lg w-full"
+          >
+            <form onSubmit={handleSubmitReview} className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-800">Write a Review</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Rating */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                        className={`text-2xl ${star <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400 transition-colors`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Comment */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Review <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={reviewForm.comment}
+                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                    placeholder="Share your experience with our service..."
+                    required
+                    minLength={10}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    {reviewForm.comment.length}/500 characters (minimum 10)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(false)}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview || reviewForm.comment.length < 10}
+                  className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {isSubmittingReview && <RefreshCw className="h-4 w-4 animate-spin" />}
+                  <span>{isSubmittingReview ? 'Submitting...' : 'Submit Review'}</span>
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
 
       {/* Edit Profile Modal */}
       {isEditing && (

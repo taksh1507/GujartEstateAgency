@@ -26,6 +26,7 @@ const Layout = () => {
     { name: 'Properties', href: '/properties', icon: Building },
     { name: 'Users', href: '/users', icon: Users },
     { name: 'Inquiries', href: '/inquiries', icon: MessageSquare },
+    { name: 'Reviews', href: '/reviews', icon: MessageSquare },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];

@@ -275,7 +275,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto touch-pan-y"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b">
@@ -339,13 +340,14 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
                       required
                       value={loginData.email}
                       onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none ${
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-base ${
                         loginData.email !== '' 
                           ? 'border-green-300 bg-green-50' 
                           : 'border-gray-300'
                       }`}
                       placeholder="Enter your email"
-                      readOnly={loginData.email !== ''}
+                      autoComplete="email"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>
@@ -493,8 +495,10 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
                       required
                       value={registerData.email}
                       onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-base"
                       placeholder="Enter your email"
+                      autoComplete="email"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>
@@ -657,8 +661,10 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
                       required
                       value={forgotData.email}
                       onChange={(e) => setForgotData({ ...forgotData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-base"
                       placeholder="Enter your email"
+                      autoComplete="email"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>

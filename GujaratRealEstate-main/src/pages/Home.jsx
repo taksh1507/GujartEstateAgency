@@ -14,6 +14,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [featuredProperties, setFeaturedProperties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [testimonials, setTestimonials] = useState([]);
 
   // Fetch featured properties from API
   useEffect(() => {
@@ -102,29 +103,59 @@ const Home = () => {
     fetchFeaturedProperties();
   }, []);
 
-  const testimonials = [
-    {
-      id: 1,
-      name: "Rajesh Patel",
-      rating: 5,
-      comment: "Mumbai Estate Agency helped me find my dream home in Kandivali West. Excellent service and professional approach!",
-      location: "Kandivali West, Mumbai"
-    },
-    {
-      id: 2,
-      name: "Priya Sharma",
-      rating: 5,
-      comment: "Very trustworthy and reliable. They guided us through the entire buying process in Borivali smoothly.",
-      location: "Borivali West, Mumbai"
-    },
-    {
-      id: 3,
-      name: "Amit Kumar",
-      rating: 5,
-      comment: "Found the perfect rental apartment in Malad within my budget. Highly recommended!",
-      location: "Malad West, Mumbai"
-    }
-  ];
+  // Fetch approved reviews for testimonials
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const response = await fetch('/api/reviews/approved');
+        const data = await response.json();
+        
+        if (data.success && data.data.length > 0) {
+          // Use real reviews, limit to 6 for display
+          setTestimonials(data.data.slice(0, 6));
+        } else {
+          // Fallback testimonials if no reviews available
+          setTestimonials([
+            {
+              id: 1,
+              userName: "Rajesh Patel",
+              rating: 5,
+              comment: "Mumbai Estate Agency helped me find my dream home in Kandivali West. Excellent service and professional approach!",
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: 2,
+              userName: "Priya Sharma",
+              rating: 5,
+              comment: "Very trustworthy and reliable. They guided us through the entire buying process in Borivali smoothly.",
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: 3,
+              userName: "Amit Kumar",
+              rating: 5,
+              comment: "Found the perfect rental apartment in Malad within my budget. Highly recommended!",
+              createdAt: new Date().toISOString()
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+        // Use fallback testimonials
+        setTestimonials([
+          {
+            id: 1,
+            userName: "Rajesh Patel",
+            rating: 5,
+            comment: "Mumbai Estate Agency helped me find my dream home in Kandivali West. Excellent service and professional approach!",
+            createdAt: new Date().toISOString()
+          }
+        ]);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -402,8 +433,10 @@ const Home = () => {
                 </div>
                 <p className="text-gray-600 mb-4 italic">"{testimonial.comment}"</p>
                 <div>
-                  <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
-                  <p className="text-sm text-gray-500">{testimonial.location}</p>
+                  <h4 className="font-semibold text-gray-800">{testimonial.userName || testimonial.name}</h4>
+                  <p className="text-sm text-gray-500">
+                    {testimonial.location || new Date(testimonial.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               </motion.div>
             ))}

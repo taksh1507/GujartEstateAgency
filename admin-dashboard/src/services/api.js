@@ -84,6 +84,27 @@ export const authAPI = {
   getOTPStatus: async (email) => {
     const response = await api.get(`/admin/otp-status/${email}`);
     return response.data;
+  },
+
+  // Reviews
+  getReviews: async (status = 'all') => {
+    const response = await api.get(`/admin/reviews?status=${status}`);
+    return response.data;
+  },
+  
+  approveReview: async (reviewId) => {
+    const response = await api.put(`/admin/reviews/${reviewId}/approve`);
+    return response.data;
+  },
+  
+  rejectReview: async (reviewId, reason) => {
+    const response = await api.put(`/admin/reviews/${reviewId}/reject`, { reason });
+    return response.data;
+  },
+  
+  deleteReview: async (reviewId) => {
+    const response = await api.delete(`/admin/reviews/${reviewId}`);
+    return response.data;
   }
 };
 

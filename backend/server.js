@@ -58,6 +58,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/properties', require('./routes/properties'));
 app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/images', require('./routes/images'));
 
 // Health check endpoint
