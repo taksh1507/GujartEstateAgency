@@ -17,8 +17,9 @@ const LoadingLogo = ({ message = "Loading..." }) => {
       >
         <Logo 
           className="scale-125" 
-          iconClassName="text-primary h-12 w-12" 
-          textClassName="text-gray-800 text-2xl" 
+          variant="default"
+          iconClassName="h-12 w-12"
+          textClassName="text-2xl"
           showText={true}
         />
       </motion.div>

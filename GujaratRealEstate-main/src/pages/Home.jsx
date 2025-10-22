@@ -180,8 +180,9 @@ const Home = () => {
             >
               <Logo 
                 className="scale-150" 
-                iconClassName="text-white h-12 w-12" 
-                textClassName="text-white text-2xl" 
+                variant="white"
+                iconClassName="h-12 w-12"
+                textClassName="text-2xl"
                 showText={true}
               />
             </motion.div>

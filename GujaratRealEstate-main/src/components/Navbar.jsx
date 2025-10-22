@@ -36,8 +36,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <Logo 
-              iconClassName="text-white" 
-              textClassName="text-white" 
+              variant="white"
               showText={true}
             />
           </Link>

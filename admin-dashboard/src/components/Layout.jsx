@@ -71,11 +71,10 @@ const Layout = () => {
                   key={item.name}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    isActive(item.href)
-                      ? 'bg-primary-100 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive(item.href)
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
                 >
                   <Icon className="mr-3 h-5 w-5" />
                   {item.name}
@@ -107,11 +106,10 @@ const Layout = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    isActive(item.href)
-                      ? 'bg-primary-100 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive(item.href)
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
                 >
                   <Icon className="mr-3 h-5 w-5" />
                   {item.name}
@@ -134,7 +132,7 @@ const Layout = () => {
               >
                 <Menu className="h-6 w-6" />
               </button>
-              
+
               {/* Search bar */}
               <div className="hidden sm:block ml-4 lg:ml-0">
                 <div className="relative">
