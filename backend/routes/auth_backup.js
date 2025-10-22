@@ -96,7 +96,11 @@ router.post('/register', async (req, res) => {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user document (without OTP - we'll use OTP service)
+    // Generate OTP for email verification
+    const otp = otpService.generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Create user document
     const userData = {
       firstName,
       lastName,
@@ -105,6 +109,8 @@ router.post('/register', async (req, res) => {
       phone: phone || null,
       role: 'user',
       verified: false,
+      emailVerificationOtp: otp,
+      emailVerificationExpiry: otpExpiry.toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       lastLogin: null,
@@ -120,23 +126,15 @@ router.post('/register', async (req, res) => {
     const userDoc = await usersRef.add(userData);
     console.log(`👤 User registered: ${email} (ID: ${userDoc.id})`);
 
-    // Generate and store OTP using OTP service
-    const otp = otpService.generateOTP();
-    otpService.storeOTP(email, otp, 'email_verification');
-    console.log(`🔐 OTP generated and stored for ${email}: ${otp}`);
-
     // Send verification email
-    let emailSent = false;
     try {
-      emailSent = await emailService.sendEmailVerificationOTP(email, otp, firstName);
-      console.log(`📧 Email send result for ${email}: ${emailSent}`);
+      await emailService.sendEmailVerificationOTP(email, otp, firstName);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📧 Verification email sent to: ${email}`);
+      }
     } catch (emailError) {
       console.error('❌ Failed to send verification email:', emailError);
-    }
-
-    // Always show OTP in development for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 DEBUG - OTP for ${email}: ${otp}`);
+      // Continue with registration even if email fails
     }
 
     res.status(201).json({
@@ -146,9 +144,7 @@ router.post('/register', async (req, res) => {
         userId: userDoc.id,
         email,
         verified: false
-      },
-      // Include OTP in development for testing
-      ...(process.env.NODE_ENV === 'development' && { debug: { otp } })
+      }
     });
 
   } catch (error) {
@@ -202,20 +198,27 @@ router.post('/verify-email', async (req, res) => {
       });
     }
 
-    // Verify OTP using OTP service
-    const otpResult = otpService.verifyOTP(email, otp, 'email_verification');
-    console.log(`🔐 OTP verification result for ${email}:`, otpResult);
-
-    if (!otpResult.success) {
+    // Verify OTP
+    if (userData.emailVerificationOtp !== otp) {
       return res.status(400).json({
         success: false,
-        error: otpResult.message || 'Invalid verification code'
+        error: 'Invalid verification code'
+      });
+    }
+
+    // Check if OTP expired
+    if (new Date() > new Date(userData.emailVerificationExpiry)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Verification code expired'
       });
     }
 
     // Update user as verified
     await userDoc.ref.update({
       verified: true,
+      emailVerificationOtp: null,
+      emailVerificationExpiry: null,
       updatedAt: new Date().toISOString()
     });
 
@@ -280,30 +283,34 @@ router.post('/resend-verification', async (req, res) => {
       });
     }
 
-    // Generate new OTP and store it
+    // Generate new OTP
     const otp = otpService.generateOTP();
-    otpService.storeOTP(email, otp, 'email_verification');
-    console.log(`🔐 New OTP generated for ${email}: ${otp}`);
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Update user with new OTP
+    await userDoc.ref.update({
+      emailVerificationOtp: otp,
+      emailVerificationExpiry: otpExpiry.toISOString(),
+      updatedAt: new Date().toISOString()
+    });
 
     // Send verification email
-    let emailSent = false;
     try {
-      emailSent = await emailService.sendEmailVerificationOTP(email, otp, userData.firstName);
-      console.log(`📧 Resend email result for ${email}: ${emailSent}`);
+      await emailService.sendEmailVerificationOTP(email, otp, userData.firstName);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📧 Verification email resent to: ${email}`);
+      }
     } catch (emailError) {
       console.error('❌ Failed to resend verification email:', emailError);
-    }
-
-    // Always show OTP in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 DEBUG - Resent OTP for ${email}: ${otp}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to send verification email'
+      });
     }
 
     res.json({
       success: true,
-      message: 'Verification code sent to your email',
-      // Include OTP in development for testing
-      ...(process.env.NODE_ENV === 'development' && { debug: { otp } })
+      message: 'Verification code sent to your email'
     });
 
   } catch (error) {

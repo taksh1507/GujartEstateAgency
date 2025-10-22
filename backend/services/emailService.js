@@ -126,6 +126,11 @@ class EmailService {
       }
     }
 
+    // In production, log the issue but don't expose details
+    if (process.env.NODE_ENV === 'production') {
+      console.error('❌ All email transporters failed in production');
+    }
+
     return null;
   }
 

@@ -20,6 +20,13 @@ class OTPService {
   }
 
   /**
+   * Generate a secure reset token
+   */
+  generateResetToken() {
+    return crypto.randomBytes(32).toString('hex');
+  }
+
+  /**
    * Store OTP for email with expiry and attempt tracking
    */
   storeOTP(email, otp, purpose = 'password_reset') {
