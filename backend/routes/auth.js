@@ -125,19 +125,17 @@ router.post('/register', async (req, res) => {
     otpService.storeOTP(email, otp, 'email_verification');
     console.log(`🔐 OTP generated and stored for ${email}: ${otp}`);
 
-    // Send verification email
-    let emailSent = false;
-    try {
-      emailSent = await emailService.sendEmailVerificationOTP(email, otp, firstName);
-      console.log(`📧 Email send result for ${email}: ${emailSent}`);
-    } catch (emailError) {
-      console.error('❌ Failed to send verification email:', emailError);
-    }
-
-    // Always show OTP in development for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 DEBUG - OTP for ${email}: ${otp}`);
-    }
+    // Send verification email asynchronously (don't wait for it)
+    console.log(`🔍 DEBUG - OTP for ${email}: ${otp}`);
+    
+    // Send email in background without blocking response
+    emailService.sendEmailVerificationOTP(email, otp, firstName)
+      .then(emailSent => {
+        console.log(`📧 Email send result for ${email}: ${emailSent}`);
+      })
+      .catch(emailError => {
+        console.error('❌ Failed to send verification email:', emailError);
+      });
 
     res.status(201).json({
       success: true,
@@ -285,19 +283,17 @@ router.post('/resend-verification', async (req, res) => {
     otpService.storeOTP(email, otp, 'email_verification');
     console.log(`🔐 New OTP generated for ${email}: ${otp}`);
 
-    // Send verification email
-    let emailSent = false;
-    try {
-      emailSent = await emailService.sendEmailVerificationOTP(email, otp, userData.firstName);
-      console.log(`📧 Resend email result for ${email}: ${emailSent}`);
-    } catch (emailError) {
-      console.error('❌ Failed to resend verification email:', emailError);
-    }
-
     // Always show OTP in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 DEBUG - Resent OTP for ${email}: ${otp}`);
-    }
+    console.log(`🔍 DEBUG - Resent OTP for ${email}: ${otp}`);
+    
+    // Send email in background without blocking response
+    emailService.sendEmailVerificationOTP(email, otp, userData.firstName)
+      .then(emailSent => {
+        console.log(`📧 Resend email result for ${email}: ${emailSent}`);
+      })
+      .catch(emailError => {
+        console.error('❌ Failed to resend verification email:', emailError);
+      });
 
     res.json({
       success: true,
@@ -812,7 +808,7 @@ router.put('/profile', async (req, res) => {
         ...currentData.profile,
         ...value.profile
       };
-      
+
       // Merge preferences if provided
       if (value.profile.preferences) {
         updateData.profile.preferences = {
@@ -978,10 +974,10 @@ router.get('/statistics', async (req, res) => {
     // Get saved properties count (only valid ones) and clean up invalid ones
     const savedPropertiesRef = db.collection('savedProperties');
     const savedPropertiesQuery = await savedPropertiesRef.where('userId', '==', decoded.id).get();
-    
+
     let totalSaved = 0;
     const invalidDocs = [];
-    
+
     for (const doc of savedPropertiesQuery.docs) {
       const savedData = doc.data();
       // Only count valid saved properties
@@ -992,7 +988,7 @@ router.get('/statistics', async (req, res) => {
         invalidDocs.push(doc);
       }
     }
-    
+
     // Clean up invalid saved properties if any found
     if (invalidDocs.length > 0) {
       console.log(`🧹 Cleaning up ${invalidDocs.length} invalid saved properties for user ${decoded.id}`);
@@ -1074,7 +1070,7 @@ router.post('/save-property', async (req, res) => {
     // Verify that the property exists before saving
     const propertiesRef = db.collection('properties');
     const propertyDoc = await propertiesRef.doc(cleanPropertyId).get();
-    
+
     if (!propertyDoc.exists) {
       return res.status(404).json({
         success: false,
@@ -1200,18 +1196,18 @@ router.get('/saved-properties', async (req, res) => {
     const savedProperties = [];
     for (const doc of savedQuery.docs) {
       const savedData = doc.data();
-      
+
       // Skip if propertyId is missing, empty, or not a string
       if (!savedData.propertyId || typeof savedData.propertyId !== 'string' || savedData.propertyId.trim() === '') {
         console.warn(`⚠️ Skipping saved property with invalid propertyId: ${doc.id}`, savedData.propertyId);
         continue;
       }
-      
+
       try {
         // Get property details
         const propertiesRef = db.collection('properties');
         const propertyDoc = await propertiesRef.doc(savedData.propertyId).get();
-        
+
         if (propertyDoc.exists) {
           savedProperties.push({
             id: doc.id,
@@ -1339,7 +1335,7 @@ router.post('/create-inquiry', async (req, res) => {
     // Get user data
     const usersRef = db.collection('users');
     const userDoc = await usersRef.doc(decoded.id).get();
-    
+
     if (!userDoc.exists) {
       return res.status(404).json({
         success: false,
@@ -1352,7 +1348,7 @@ router.post('/create-inquiry', async (req, res) => {
     // Get property data
     const propertiesRef = db.collection('properties');
     const propertyDoc = await propertiesRef.doc(propertyId).get();
-    
+
     if (!propertyDoc.exists) {
       return res.status(404).json({
         success: false,
@@ -1528,7 +1524,7 @@ router.post('/reply-to-inquiry/:inquiryId', async (req, res) => {
     // Add new message to conversation
     const currentMessages = inquiryData.messages || [];
     const newMessageId = currentMessages.length + 1;
-    
+
     const newMessage = {
       id: newMessageId,
       sender: 'user',
@@ -1601,7 +1597,7 @@ router.post('/cleanup-saved-properties', async (req, res) => {
 
     for (const doc of savedQuery.docs) {
       const savedData = doc.data();
-      
+
       // Check if propertyId is invalid
       if (!savedData.propertyId || typeof savedData.propertyId !== 'string' || savedData.propertyId.trim() === '') {
         console.log(`🧹 Cleaning up invalid saved property: ${doc.id}`);

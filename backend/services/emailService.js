@@ -102,10 +102,17 @@ class EmailService {
    * Test email connection with fallback to backup transporters
    */
   async testAndGetWorkingTransporter() {
-    // Try main transporter first
+    const timeout = (ms) => new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timeout')), ms)
+    );
+
+    // Try main transporter first with timeout
     if (this.transporter) {
       try {
-        await this.transporter.verify();
+        await Promise.race([
+          this.transporter.verify(),
+          timeout(5000) // 5 second timeout
+        ]);
         console.log('✅ Main email transporter working');
         return this.transporter;
       } catch (error) {
@@ -113,11 +120,14 @@ class EmailService {
       }
     }
 
-    // Try backup transporters
+    // Try backup transporters with timeout
     if (this.backupTransporters) {
       for (let i = 0; i < this.backupTransporters.length; i++) {
         try {
-          await this.backupTransporters[i].verify();
+          await Promise.race([
+            this.backupTransporters[i].verify(),
+            timeout(5000) // 5 second timeout
+          ]);
           console.log(`✅ Backup transporter ${i + 1} working`);
           return this.backupTransporters[i];
         } catch (error) {
@@ -205,15 +215,23 @@ class EmailService {
   async sendEmailVerificationOTP(email, otp, userName = 'User') {
     console.log('🚀 Attempting to send email verification OTP...');
 
-    // Get a working transporter
-    const workingTransporter = await this.testAndGetWorkingTransporter();
-
-    if (!workingTransporter) {
-      console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
-      return false;
-    }
+    // Quick timeout for the entire operation
+    const globalTimeout = setTimeout(() => {
+      console.log('⏰ Email operation timed out after 15 seconds');
+    }, 15000);
 
     try {
+      // Get a working transporter with timeout
+      console.log('🔍 Testing email transporter...');
+      const workingTransporter = await this.testAndGetWorkingTransporter();
+
+      if (!workingTransporter) {
+        console.log(`⚠️ No working email transporter found. OTP: ${otp}`);
+        clearTimeout(globalTimeout);
+        return false;
+      }
+
+      console.log('📧 Sending email...');
       const mailOptions = {
         from: process.env.EMAIL_FROM,
         to: email,
@@ -246,13 +264,24 @@ class EmailService {
                 `
       };
 
-      await workingTransporter.sendMail(mailOptions);
+      // Add timeout to email sending
+      const timeout = (ms) => new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email send timeout')), ms)
+      );
+
+      await Promise.race([
+        workingTransporter.sendMail(mailOptions),
+        timeout(8000) // 8 second timeout
+      ]);
+      
       console.log(`✅ Email verification OTP sent to ${email}`);
+      clearTimeout(globalTimeout);
       return true;
 
     } catch (error) {
       console.error(`❌ Failed to send verification email to ${email}:`, error.message);
-      console.log(`⚠️ Email failed. OTP: ${otp}`);
+      console.log(`⚠️ Email failed but OTP is available: ${otp}`);
+      clearTimeout(globalTimeout);
       return false;
     }
   }
