@@ -1,5 +1,12 @@
 # 🏠 Gujarat Estate Agency
 
+[![Frontend: React + Vite](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB?logo=react&logoColor=white)](GujaratRealEstate-main)
+[![Admin: React + Vite](https://img.shields.io/badge/admin-React%20%2B%20Vite-61DAFB?logo=react&logoColor=white)](admin-dashboard)
+[![Backend: Node.js + Express](https://img.shields.io/badge/backend-Node.js%20Express-339933?logo=nodedotjs&logoColor=white)](backend)
+[![Database: Firebase Firestore](https://img.shields.io/badge/database-Firebase-FFCA28?logo=firebase&logoColor=white)](backend)
+[![Images: Cloudinary](https://img.shields.io/badge/images-Cloudinary-3448C5?logo=cloudinary&logoColor=white)](backend)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A comprehensive real estate management platform specializing in Mumbai properties with separate admin dashboard and frontend website, built with React, Node.js, Firebase, and Cloudinary.
 
 ## 🌟 Features
@@ -258,6 +265,27 @@ npm run dev:frontend   # Frontend Website (port 5173)
 - ✅ CORS protection
 - ✅ Security headers
 - ✅ Environment variable protection
+
+## ✅ Verification Status
+
+Verified in this audit:
+
+| Check | Result |
+| --- | --- |
+| Backend `npm ci` | PASS |
+| Backend JS syntax (`node --check`, 16 files) | PASS — 0 failures |
+| Frontend (GujaratRealEstate-main) `npm ci` + `npm run build` | PASS — Vite production build |
+| Admin Dashboard (admin-dashboard) `npm ci` + `npm run build` | PASS — Vite production build |
+| Root `npm ci` | EUSAGE — root has no package-lock.json; it is a `concurrently` aggregator, install subprojects directly |
+
+Notes:
+- No application test suite exists (backend `npm test` runs jest with no test files; frontends have no test script). Verification above is install/build/syntax-level, not automated.
+- CI workflows exist only for `GujaratRealEstate-main` (GitHub Pages deploy); backend and admin-dashboard have no CI.
+
+## ⚠️ Security Notes
+
+1. **`GujaratRealEstate-main/.env.production` and `admin-dashboard/.env.production` are tracked in git.** Production env files can contain Firebase, Cloudinary, and SMTP credentials. **Recommended:** `git rm --cached` both files, rotate any credentials they contain, and rely on `.env.example` + deployment-platform secret injection instead. Do not print or commit their contents.
+2. The README shows placeholder default admin credentials (`yourgmailaccount@gmail.com` / `password setup `) — set real values before any non-personal use.
 
 ## 📱 Responsive Design
 
