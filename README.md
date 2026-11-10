@@ -163,11 +163,6 @@ npm run dev:frontend   # Frontend Website (port 5173)
 - **Admin Dashboard**: http://localhost:5174
 - **Backend API**: http://localhost:8000
 
-## 🔐 Default Admin Credentials
-
-- **Email**: `yourgmailaccount@gmail.com`
-- **Password**: `password setup `
-
 ## 📦 Deployment
 
 ### Quick Deploy (15 minutes)
@@ -284,8 +279,7 @@ Notes:
 
 ## ⚠️ Security Notes
 
-1. **`GujaratRealEstate-main/.env.production` and `admin-dashboard/.env.production` are tracked in git.** Production env files can contain Firebase, Cloudinary, and SMTP credentials. **Recommended:** `git rm --cached` both files, rotate any credentials they contain, and rely on `.env.example` + deployment-platform secret injection instead. Do not print or commit their contents.
-2. The README shows placeholder default admin credentials (`yourgmailaccount@gmail.com` / `password setup `) — set real values before any non-personal use.
+1. **`GujaratRealEstate-main/.env.production` and `admin-dashboard/.env.production` were tracked in git.** Production env files can contain Firebase, Cloudinary, and SMTP credentials. **Remediated:** `git rm --cached` both files; they now live only on your local copy and must be added to `.gitignore`. Rotate any credentials they contain and rely on `.env.example` + deployment-platform secret injection instead. Do not print or commit their contents.
 
 ## 📱 Responsive Design
 
