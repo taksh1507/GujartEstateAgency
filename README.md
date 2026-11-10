@@ -277,10 +277,6 @@ Notes:
 - No application test suite exists (backend `npm test` runs jest with no test files; frontends have no test script). Verification above is install/build/syntax-level, not automated.
 - CI workflows exist only for `GujaratRealEstate-main` (GitHub Pages deploy); backend and admin-dashboard have no CI.
 
-## ⚠️ Security Notes
-
-1. **`GujaratRealEstate-main/.env.production` and `admin-dashboard/.env.production` were tracked in git.** Production env files can contain Firebase, Cloudinary, and SMTP credentials. **Remediated:** `git rm --cached` both files; they now live only on your local copy and must be added to `.gitignore`. Rotate any credentials they contain and rely on `.env.example` + deployment-platform secret injection instead. Do not print or commit their contents.
-
 ## 📱 Responsive Design
 
 - ✅ Mobile-first approach
